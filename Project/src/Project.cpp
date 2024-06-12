@@ -468,56 +468,36 @@ bool compareByLength(const TraceResult& a, const TraceResult& b)
     return a.distance > b.distance; // Ordine decrescente
 }
 
-void exportTraceResults(const vector<TraceResult>& results, const string& filename)
-{
-    // Suddividi i risultati in passanti e non passanti
-    vector<TraceResult> passanteResults;
-    vector<TraceResult> nonPassanteResults;
-
-    for (const auto& result : results) {
-        if (result.isNonPassante) {
-            nonPassanteResults.push_back(result);
-        } else {
-            passanteResults.push_back(result);
-        }
-    }
-
-    // Ordina i risultati in ordine decrescente per lunghezza
-    sort(passanteResults.begin(), passanteResults.end(), compareByLength);
-    sort(nonPassanteResults.begin(), nonPassanteResults.end(), compareByLength);
-
-    // Apri il file di output
+void exportTraceResults(const vector<TraceResult>& results, const string& filename) {
     ofstream outFile(filename);
-
-    if (!outFile) {
-        cerr << "Errore nell'apertura del file " << filename << endl;
+    if (!outFile.is_open()) {
+        cerr << "Errore nell'apertura del file di output." << endl;
         return;
     }
 
-    // Scrivi l'intestazione per FractureId e il numero di tracce
-    map<int, int> fractureCountMap;
+    // Raggruppa i risultati per FractureId
+    map<int, vector<TraceResult>> resultsByFracture;
     for (const auto& result : results) {
-        fractureCountMap[result.fractureId]++;
+        resultsByFracture[result.fractureId].push_back(result);
     }
 
-    outFile << "# FractureId; NumTraces\n";
-    for (const auto& entry : fractureCountMap) {
-        outFile << entry.first << "; " << entry.second << "\n";
+    // Scrivi i risultati nel file con il nuovo formato
+    for (auto& [fractureId, traceResults] : resultsByFracture) {
+        // Ordina i risultati per isNonPassante e poi per lunghezza (distance) in ordine decrescente
+        sort(traceResults.begin(), traceResults.end(), [](const TraceResult& a, const TraceResult& b) {
+            if (a.isNonPassante != b.isNonPassante) {
+                return !a.isNonPassante && b.isNonPassante;  // Passanti (isNonPassante = false) prima di non passanti (isNonPassante = true)
+            }
+            return b.distance < a.distance;  // Ordinamento decrescente per lunghezza
+        });
+
+        outFile << "# FractureId; NumTraces\n";
+        outFile << fractureId << "; " << traceResults.size() << "\n";
+        outFile << "# TraceId; Tips; Length\n";
+        for (const auto& result : traceResults) {
+            outFile << result.traceId << "; " << (result.isNonPassante ? 1 : 0) << "; " << result.distance << "\n";
+        }
     }
 
-    // Scrivi l'intestazione per TraceId, Tips e Length
-    outFile << "# TraceId; Tips; Length\n";
-
-    // Scrivi i risultati passanti ordinati
-    for (const auto& result : passanteResults) {
-        outFile << result.traceId << "; " << (result.isNonPassante ? "true" : "false") << "; " << result.distance << "\n";
-    }
-
-    // Scrivi i risultati non passanti ordinati
-    for (const auto& result : nonPassanteResults) {
-        outFile << result.traceId << "; " << (result.isNonPassante ? "true" : "false") << "; " << result.distance << "\n";
-    }
-
-    // Chiudi il file di output
     outFile.close();
 }
