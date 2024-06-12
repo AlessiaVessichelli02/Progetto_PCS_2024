@@ -1,108 +1,76 @@
 #ifndef DFN_HPP
 #define DFN_HPP
 
-#include <vector>
 #include <iostream>
 #include <string>
-#include <iomanip>
-
-using namespace std;
-
-struct Vertex {
-    double x, y, z;
-    Vertex(double x, double y, double z) : x(x), y(y), z(z) {}
-};
-
-struct Fracture {
-    int id;
-    vector<Vertex> vertices;
-
-    Fracture(int id) : id(id) {}
-
-    void addVertex(const Vertex& vertex) {
-        vertices.push_back(vertex);
-    }
-
-    void print() const {
-        cout << "Fracture ID: " << id << "\n";
-        for (const auto& vertex : vertices) {
-            std::cout << "Vertex: (" << setprecision(16) << vertex.x << ", " << setprecision(16) << vertex.y << ", " << setprecision(16) << vertex.z << ")\n";
-        }
-    }
-};
-
-#endif // DFN_HPP
-
-
-/*
-#include <iostream>
 #include <vector>
-#include "Eigen/Eigen"
+#include <limits>
+#include <iomanip>
+#include <cmath>
+#include <map>
+#include <Eigen/Dense>
 
 using namespace std;
 using namespace Eigen;
 
-namespace DFNLibrary{
-
-struct DFN
-{
-    //Tracce
-    unsigned int NumFractures = 0;
-    unsigned int NumTraces = 0; ///< Numero di tracce
-    unsigned int FractureID = 0; ///< ID delle fratture
-    unsigned int NumVertices = 0; ///< Numero di vertici
-    vector<Vector3d> CoordinatesVertices = {}; ///< Coordinate dei vertici vengono salvati in un vettore
-
-};
-
-}
-
-#endif
-*/
-
-/*
-#pragma once
-
-#include <vector>
-#include <string>
-
-using namespace std;
-
-namespace DFN {
-
-struct Point3D {
-    double x, y, z;
-};
-
 struct Fracture {
-    int id;
-    vector<Point3D> vertices;
+
+    unsigned int NumFractures = 0;
+    vector<unsigned int> FractureID = {}; ///< ID delle fratture
+    vector<unsigned int> NumVertices = {}; ///< Numero di vertici
+    vector<MatrixXd> Vertices = {}; ///< Coordinate dei vertici vengono salvati in una matrice
+
 };
 
+struct Point {
 
+    double x, y, z; ///< Coordinate del punto
 
-struct Trace {
-    int id;
-    int fractureId1;
-    int fractureId2;
-    Point3D point1;
-    Point3D point2;
-    double length;
-    bool tips;
+    Point() : x(0), y(0), z(0) {} ///< Costruttore di default
+
+    Point(double x, double y, double z) : x(x), y(y), z(z) {} ///< Costruttore con parametri
+
 };
 
-struct MyDFN {
-    vector<Fracture> fractures;
-    vector<Trace> traces;
-    vector<vector<Trace>> fractureTraces;
+struct Polygon {
 
-    MyDFN(const string& filename);
-    void calculateTraces();
-    void findTracesBetweenFractures(const Fracture& f1, const Fracture& f2);
-    void classifyTrace(const Trace& trace, vector<Trace>& passTraces, vector<Trace>& nonPassTraces);
-    void classifyAndSortTraces();
-    void writeResults(const string& traceFilename, const string& fractureTraceFilename);
+    vector<Point> vertices; ///< Vettore contenente i vertici del poligono
+
 };
 
-} // namespace DFN
-*/
+struct Plane {
+
+    double a, b, c, d; ///< Coefficienti dell'equazione del piano; ax + by + cz + d = 0
+    vector<Point> vertices; ///< Per mantenere i vertici del piano
+
+};
+
+struct IntersectionLine {
+
+    Vector3d direction; ///< Direzione della linea di intersezione
+    Vector3d point; ///< Un punto sulla linea di intersezione
+
+};
+
+struct VerticesLine {
+
+    vector<vector<string>> VerticesLines;
+
+};
+
+struct Traces {
+
+    map<vector<int>,vector<vector<double>>> traces; ///< Mappa che associa coppie di FractureID a vettori di coordinate dei punti di intersezione
+
+};
+
+struct TraceResult {
+
+    int fractureId; ///< ID della frattura
+    int traceId; ///< ID della tracca
+    bool isNonPassante; ///< True se la traccia è non passante, False se è passante
+    double distance; ///< Distanza della traccia
+
+};
+
+#endif // DFN_HPP

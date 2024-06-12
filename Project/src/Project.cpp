@@ -1,358 +1,523 @@
 #include "Project.hpp"
-#include "DFN.hpp"
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
+#include <limits>
 #include <cmath>
+#include <map>
+#include <iomanip>
 #include <algorithm>
+#include <Eigen/Eigen>
 
 using namespace std;
+using namespace Eigen;
 
-//namespace DFNLibrary {
-
-void DFN::readDFN(const string& filename)
+bool readDFN(const string& filename, Fracture& frattura)
 {
     ifstream file(filename);
     if (!file.is_open()) {
-        cerr << "Error opening file: " << filename << std::endl;
-        return;
+        cerr << "Error opening file: " << filename << endl;
+        return 1;
     }
 
     string line;
-    getline(file, line); // Read "# Number of Fractures"
-    int numFractures;
-    file >> numFractures;
-    getline(file, line); // Read the remaining part of the line
+
+    // Leggo il numero di fratture
+    getline(file, line); // Salto la prima riga 'NumFractures'
+    getline(file, line); // Leggo il numero di fratture
+    unsigned int numFractures;
+    numFractures = stoi(line); // stoi() converte string in int
+
+    frattura.NumFractures = numFractures; // Memorizzo il numero di fratture nell'apposita struttura
+
+    //cout << "Numero di fratture: " << numFractures << endl;
 
     for (int i = 0; i < numFractures; ++i) {
-        getline(file, line); // Read "# FracturesId; NumVertices"
-        int id;
+
+        // Leggo l'ID delle fratture e il numero dei vertici
+        getline(file, line); // Salto la linea '# FractureId; NumVertices'
+        getline(file, line); // Leggo il numero di fratture
+        stringstream ss(line);
+        //char ch;
+        int fractureId;
         int numVertices;
-        char semicolon;
-        file >> id >> semicolon >> numVertices;
-        getline(file, line); // Read the remaining part of the line
-        getline(file, line); // Read "# Vertices"
 
-        Fracture fracture(id);
+        ss >> fractureId;
+        frattura.FractureID.push_back(fractureId);
 
-        // Temporary storage for vertices coordinates
-        vector<double> xCoords(numVertices);
-        vector<double> yCoords(numVertices);
-        vector<double> zCoords(numVertices);
+        ss.ignore(numeric_limits<streamsize>::max(), ';'); // Ignora tutto ciò che c'è fino a ';' incluso
+        ss >> numVertices; // Legge ciò che c'è dopo il ';'
+        frattura.NumVertices.push_back(numVertices);
 
-        // Read x coordinates
-        for (int j = 0; j < numVertices; ++j) {
-            file >> xCoords[j];
-            if(j < numVertices - 1) file.ignore(1, ';'); // Ignore the semicolon
+        //cout << "FractureId: " << fractureId << ", NumVertici: " << numVertices << endl;
+
+        // Leggo i vertici
+        getline(file, line); // Salto la linea '# Vertices'
+
+        MatrixXd vertici(3, numVertices);
+
+        for (int j = 0; j < 3; ++j) {
+            getline(file, line);
+            stringstream ssVertices(line);
+            vector<double> vertexRow; // Inizializzo un vettore per memorizzare i vertici riga per riga
+
+            for (int k = 0; k < numVertices; ++k) {
+                double value;
+                ssVertices >> value;
+                ssVertices.ignore(numeric_limits<streamsize>::max(), ';');
+                vertexRow.push_back(value);
+            }
+
+            for (int l = 0; l < vertici.rows(); ++l) {
+                bool isEmpty = true;  // Assume che la riga sia vuota
+
+                // Verifica se la riga è effettivamente vuota
+                for (int m = 0; m < vertici.cols(); ++m) {
+                    if (vertici(l, m) != 0) {
+                        isEmpty = false;
+                        break;
+                    }
+                }
+
+                // Se la riga è vuota, assegna i valori
+                if (isEmpty) {
+                    for (int m = 0; m < vertexRow.size(); ++m) {
+                        vertici(l, m) = vertexRow[m];
+                    }
+                    break; // Esce dal ciclo una volta che la riga è stat riempita
+                }
+
+            }
+
         }
-        getline(file, line);
 
-        // Read y coordinates
-        for (int j = 0; j < numVertices; ++j) {
-            file >> yCoords[j];
-            if(j < numVertices - 1) file.ignore(1, ';'); // Ignore the semicolon
-        }
-        getline(file, line);
+        frattura.Vertices.push_back(vertici);
 
-        // Read z coordinates
-        for (int j = 0; j < numVertices; ++j) {
-            file >> zCoords[j];
-            if(j < numVertices - 1) file.ignore(1, ';'); // Ignore the semicolon
-        }
-        getline(file, line);
-
-        // Combine coordinates into vertices
-        for (int j = 0; j < numVertices; ++j) {
-            Vertex vertex(xCoords[j], yCoords[j], zCoords[j]);
-            fracture.addVertex(vertex);
-        }
-
-        fractures.push_back(fracture);
-
+        //cout << "Vertici: " << endl << vertici << endl;
     }
 
     file.close();
+    return true;
 }
-
-void DFN::print() const {
-    for(const auto& fracture : fractures) {
-        fracture.print();
-    }
-}
-
-
-//}
 
 /*
-bool ImportDFN(const string& inputFilePath)
+bool printFracture(const Fracture& frattura)
 {
-    // Apertura del File
-    ifstream file;
-    file.open(inputFilePath);
+    cout << "Numero totale di fratture: " << frattura.NumFractures << endl;
 
-    if (file.fail())
-    {
-        cerr<< "Errore nell'apertura del file"<< endl;
-        return false;
+
+    cout << "FractureID: ";
+    for (unsigned int id : frattura.FractureID) {
+        cout << id << " ";
+    }
+    cout << endl;
+
+    cout << "NumVertices: ";
+    for (unsigned int num : frattura.NumVertices) {
+        cout << num << " ";
+    }
+    cout << endl;
+
+    cout << "Vertices: " << endl;
+    for (const MatrixXd& vertices : frattura.Vertices) {
+        cout << vertices << endl;
     }
 
-    //leggo le righe
-    string line;
-
-    //salto la prima riga
-    while (!file.eof())
-    {
-        getline(file, line);
-
-        // Skip Comment Line
-        if(line[0] != '# Number of Fractures')
-            break;
+    for (unsigned int i = 0; i < frattura.NumFractures; ++i) {
+        cout << "FractureID [" << i <<"]: " << frattura.FractureID[i] << endl;
+        cout << "NumVertices [" << i <<"]: " << frattura.NumVertices[i] << endl;
+        cout << "Vertices [" << i <<"]: " << endl << frattura.Vertices[i] << endl;
     }
-
-    //leggo la seconda riga
-    getline(file, line);
-    istringstream convertN(line);
-    convertN >> NumFractures;
-
-    for(double i = 0; i < NumFractures; ++i){
-        //salto la terza riga
-        /*while (!file.eof())
-        {
-            getline(file, line);
-
-            // Skip Comment Line
-            if(line[0] != '# FractureId; NumVertices')
-                break;
-        }
-
-        string header;
-        getline(file,header);
-
-        //leggo la quarta riga
-        string line;
-        getline(file, line);
-        convertN.clear();
-        convertN.str(line);
-        convertN >> FractureID;
-        convertN.ignore(1, ';');
-        convertN >> NumVertices;
-
-        //salto la quinta riga
-        header.clear();
-        getline(file,header);
-
-        //leggo la sesto riga
-        getline(file, line);
-        convertN.clear();
-        string line;
-        getline(file, line);
-        convertN.clear();
-        convertN.str(line);
-        convertN >> FractureID;
-        convertN.ignore(1, ';');
-        convertN >> NumVertices;
-    }
+    return true;
+}
 */
-    /*
-    istringstream convertN(line.substr(line.find(';')+1));
-    getline(file, line);
-    convertN.clear();
-    convertN.str(line.substr(line.find(';')+1));
-    convertN >> n;
-    //salto la terza riga
-    while (!file.eof())
-    {
-        getline(file, line);
 
-        // Skip Comment Line
-        if(line[0] != 'w;r')
-            break;
+//funzione che crea i quadrilateri utilizzando i vertici letti dal file
+vector<Polygon> createPolygons(const Fracture& frattura) {
+    vector<Polygon> polygons;
+    for (const auto& vertices : frattura.Vertices) {
+        Polygon poly;
+        for (int i = 0; i < vertices.cols(); ++i) {
+            Point point(vertices(0, i), vertices(1, i), vertices(2, i));
+            poly.vertices.push_back(point);
+        }
+        polygons.push_back(poly);
     }
-    */
-//}
+    return polygons;
+}
 
-/*bool ImportMesh(const string &filepath, PolygonalMesh& mesh)
+// Funzione per calcolare l'equazione del piano
+Plane calculatePlaneEquation(const Polygon& poly) {
+    if (poly.vertices.size() < 3) {
+        throw invalid_argument("Il Poligono deve avere almeno 3 vertici.");
+    }
+
+    // Prendi tre punti del poligono
+    Point p1 = poly.vertices[0];
+    Point p2 = poly.vertices[1];
+    Point p3 = poly.vertices[2];
+
+    // Calcola i vettori dei lati del poligono
+    Point v1 = {p2.x - p1.x, p2.y - p1.y, p2.z - p1.z};
+    Point v2 = {p3.x - p1.x, p3.y - p1.y, p3.z - p1.z};
+
+    // Calcola il vettore normale al piano usando il prodotto vettoriale
+    Point normal = {v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
+
+    // Normalizza il vettore normale
+    double length = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+    normal.x /= length;
+    normal.y /= length;
+    normal.z /= length;
+
+    // Calcola il coefficiente d usando uno dei punti del quadrilatero
+    double d = -(normal.x * p1.x + normal.y * p1.y + normal.z * p1.z);
+
+    return {normal.x, normal.y, normal.z, d};
+}
+
+//funzione che calcola la direzione della linea di intersezione tra due piani
+Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2)
 {
-    //Verifico l'importazione di Cell0D e se è andata a buon fine stampo i marker
-    if(!ImportCell0Ds(filepath + "/Cell0Ds.csv", mesh))
-    {
-        return false;
-    }
-    else
-    {
-        cout << "Cell0D marker:" << endl;
-        if(mesh.Cell0DMarkers.size() == 0)
-        {
-            cout << "Non ci sono markers diversi da 0 per Cell0D" << endl;
-        }
-        else
-        {
-            for(auto it = mesh.Cell0DMarkers.begin(); it != mesh.Cell0DMarkers.end(); it++) //auto è un tipo
-            {
-                cout << "key:\t" << it -> first << "\t values:";
-                for(const unsigned int id : it -> second)
-                    cout << "\t" << id;
-                cout << endl;
-            }
-
-        }
-
-    }
-
-    //Verifico l'importazione di Cell1D e se è andata a buon fine stampo i marker
-    if(!ImportCell1Ds(filepath + "/Cell1Ds.csv", mesh))
-    {
-        return false;
-    }
-    else
-    {
-        cout << "Cell1D marker:" << endl;
-        if(mesh.Cell1DMarkers.size() == 0)
-        {
-            cout << "Non ci sono markers diversi da 0 for Cell1D" << endl;
-        }
-        else
-        {
-            for(auto it = mesh.Cell1DMarkers.begin(); it != mesh.Cell1DMarkers.end(); it++)
-            {
-                cout << "key:\t" << it -> first << "\t values:";
-                for(const unsigned int id : it -> second)
-                    cout << "\t" << id;
-
-                cout << endl;
-            }
-        }
-
-    }*/
-
-/*
-#include "Project.hpp"
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <algorithm>
-
-using namespace std;
-
-namespace DFN {
-
-double calculateLength(const Point3D& p1, const Point3D& p2) {
-    return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2) + pow(p2.z - p1.z, 2));
+    Vector3d normal1(plane1.a, plane1.b, plane1.c);
+    Vector3d normal2(plane2.a, plane2.b, plane2.c);
+    Vector3d direction = normal1.cross(normal2); // Prodotto vettoriale
+    return direction.normalized(); // Normalizzazione
 }
 
-vector<Fracture> readDFNFromFile(const string& filename) {
-    ifstream infile(filename);
-    string line;
-    vector<Fracture> fractures;
+//funzione che trova un punto sulla linea di intersezione
+Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, const Vector3d& direction)
+{
+    Matrix3d A;
+    Vector3d b;
 
-    if (infile.is_open()) {
-        // Leggi il numero di fratture
-        getline(infile, line); // Ignora la linea di commento
-        getline(infile, line);
-        int numFractures = stoi(line);
+    // Popolo la matrice A e il vettore b
+    A << plane1.a, plane1.b, plane1.c,
+        plane2.a, plane2.b, plane2.c,
+        direction.x(), direction.y(), direction.z();
 
-        for (int i = 0; i < numFractures; ++i) {
-            // Leggi l'identificativo della frattura e il numero dei vertici
-            getline(infile, line); // Ignora la linea di commento
-            getline(infile, line);
-            istringstream iss(line);
-            int fractureId, numVertices;
-            char semicolon;
-            iss >> fractureId >> semicolon >> numVertices;
+    b << -plane1.d, -plane2.d, 0.0; // Il prodotto scalare con la direzione è 0
 
-            // Leggi i vertici
-            getline(infile, line); // Ignora la linea di commento
-            vector<Point3D> vertices(numVertices);
-            for (int j = 0; j < numVertices; ++j) {
-                infile >> vertices[j].x1 >> semicolon >> vertices[j].x2 >> semicolon >> vertices[j].x3 >> semicolon >> vertices[j].x4;
+    // Risolvo il sistema di equazioni
+    Vector3d intersectionPoint = A.colPivHouseholderQr().solve(b); // Effettuo la decomposizione QR con pivotazione su colonne della matrice A
+    return intersectionPoint;
+}
+
+IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& plane2)
+{
+    // Calcola la direzione della retta di intersezione
+    Vector3d direction = calculateIntersectionDirection(plane1, plane2);
+
+    // Calcola un punto sulla retta di intersezione
+    Vector3d point = calculateIntersectionPoint(plane1, plane2, direction);
+    return {direction, point};
+}
+
+
+// Funzione per calcolare l'equazione della retta passante per due punti
+string calculateLineEquation(const Point& p1, const Point& p2)
+{
+    double a = p2.y - p1.y;
+    double b = p1.x - p2.x;
+    double c = a * p1.x + b * p1.y;
+    return to_string(a) + "x + " + to_string(b) + "y = " + to_string(c);
+}
+
+// Funzione per estrarre le equazioni delle linee dai poligoni
+VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
+{
+    VerticesLine verticesLine;
+    for (const auto& poly : polygons) {
+        vector<string> polyLines;
+        for (size_t i = 0; i < poly.vertices.size(); ++i) {
+            Point p1 = poly.vertices[i];
+            Point p2 = poly.vertices[(i + 1) % poly.vertices.size()];
+            polyLines.push_back(calculateLineEquation(p1, p2));
+        }
+        verticesLine.VerticesLines.push_back(polyLines);
+    }
+    return verticesLine;
+}
+
+Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
+{
+    Vector3d originVector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
+    Vector3d crossProduct = direction1.cross(direction2);
+    if (crossProduct.norm() < 1e-9) {
+        throw runtime_error("Le rette sono parallele e non si intersecano.");
+    }
+    double t = originVector.cross(direction2).dot(crossProduct) / crossProduct.squaredNorm();
+    double u = originVector.cross(direction1).dot(crossProduct) / crossProduct.squaredNorm();
+    Vector3d intersectionPoint = Vector3d(p1.x, p1.y, p1.z) + direction1 * t;
+    return intersectionPoint;
+}
+
+bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection)
+{
+    double minX = min(p1.x, p2.x);
+    double maxX = max(p1.x, p2.x);
+    double minY = min(p1.y, p2.y);
+    double maxY = max(p1.y, p2.y);
+    double minZ = min(p1.z, p2.z);
+    double maxZ = max(p1.z, p2.z);
+
+    return (intersection.x() >= minX && intersection.x() <= maxX &&
+            intersection.y() >= minY && intersection.y() <= maxY &&
+            intersection.z() >= minZ && intersection.z() <= maxZ);
+}
+
+bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd)
+{
+    // Assicurati che A sia il punto iniziale e B il punto finale per il primo segmento
+    Vector3d p1 = (A.x() <= B.x()) ? A : B;
+    Vector3d q1 = (A.x() <= B.x()) ? B : A;
+
+    // Assicurati che C sia il punto iniziale e D il punto finale per il secondo segmento
+    Vector3d p2 = (C.x() <= D.x()) ? C : D;
+    Vector3d q2 = (C.x() <= D.x()) ? D : C;
+
+    // Verifica se c'è un'intersezione tra gli intervalli [p1, q1] e [p2, q2]
+    if (std::max(p1.x(), p2.x()) <= std::min(q1.x(), q2.x())) {
+        overlapStart = (p1.x() > p2.x()) ? p1 : p2;
+        overlapEnd = (q1.x() < q2.x()) ? q1 : q2;
+        return true;
+    }
+
+    return false;
+}
+
+void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
+{
+    bool hasIntersectionI = false;
+    bool hasIntersectionJ = false;
+
+    vector<Vector3d> intersectionsI;
+    vector<Vector3d> intersectionsJ;
+
+    for (size_t l = 0; l < polygons[i].vertices.size(); ++l) {
+        Point p1 = polygons[i].vertices[l];
+        Point p2 = polygons[i].vertices[(l + 1) % polygons[i].vertices.size()];
+        Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
+
+        try {
+            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            if (isPointOnSegment(p1, p2, intersection)) {
+                hasIntersectionI = true;
+                intersectionsI.push_back(intersection);
             }
-            infile.ignore(numeric_limits<streamsize>::max(), '\n');
-
-            fractures.push_back({fractureId, vertices});
+        } catch (const exception& e) {
+            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
         }
-        infile.close();
     }
 
-    return fractures;
-}
+    for (size_t l = 0; l < polygons[j].vertices.size(); ++l) {
+        Point p1 = polygons[j].vertices[l];
+        Point p2 = polygons[j].vertices[(l + 1) % polygons[j].vertices.size()];
+        Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
 
-void writeTracesToFile(const string& filename, const vector<Trace>& traces) {
-    ofstream outfile(filename);
-    if (outfile.is_open()) {
-        outfile << "# Number of Traces\n" << traces.size() << "\n";
-        outfile << "# TraceId; FractureId1; FractureId2; X1; Y1; Z1; X2; Y2; Z2\n";
-        for (const auto& trace : traces) {
-            outfile << trace.id << "; " << trace.fractureId1 << "; " << trace.fractureId2 << "; "
-                    << trace.point1.x << "; " << trace.point1.y << "; " << trace.point1.z << "; "
-                    << trace.point2.x << "; " << trace.point2.y << "; " << trace.point2.z << "\n";
+        try {
+            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            if (isPointOnSegment(p1, p2, intersection)) {
+                hasIntersectionJ = true;
+                intersectionsJ.push_back(intersection);
+            }
+        } catch (const exception& e) {
+            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
         }
-        outfile.close();
     }
-}
 
-void writeFractureTracesToFile(const string& filename, const vector<vector<Trace>>& fractureTraces) {
-    ofstream outfile(filename);
-    if (outfile.is_open()) {
-        for (size_t i = 0; i < fractureTraces.size(); ++i) {
-            if (!fractureTraces[i].empty()) {
-                outfile << "# FractureId; NumTraces\n" << fractureTraces[i][0].fractureId1 << "; " << fractureTraces[i].size() << "\n";
-                outfile << "# TraceId; Tips; Length\n";
-                for (const auto& trace : fractureTraces[i]) {
-                    outfile << trace.id << "; " << trace.tips << "; " << trace.length << "\n";
+    if (hasIntersectionI && hasIntersectionJ) {
+        //vector<int> fractureIDs{i, j};
+        vector<int> fractureIDs{static_cast<int>(i), static_cast<int>(j)};
+        if (intersectionsI == intersectionsJ) {
+            traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()}, {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
+        } else {
+            if (intersectionsI.size() >= 2 && intersectionsJ.size() >= 2) {
+                Vector3d segmentI_start = intersectionsI[0];
+                Vector3d segmentI_end = intersectionsI[1];
+                Vector3d segmentJ_start = intersectionsJ[0];
+                Vector3d segmentJ_end = intersectionsJ[1];
+
+                Vector3d overlapStart, overlapEnd;
+                if (doSegmentsOverlap(segmentI_start, segmentI_end, segmentJ_start, segmentJ_end, overlapStart, overlapEnd)) {
+                    traces.traces[fractureIDs] = { {overlapStart.x(), overlapStart.y(), overlapStart.z()}, {overlapEnd.x(), overlapEnd.y(), overlapEnd.z()} };
                 }
             }
         }
-        outfile.close();
     }
 }
 
-bool doLinesIntersect(const Point3D& p1, const Point3D& p2, const Point3D& p3, const Point3D& p4, Point3D& intersection) {
-    // Calcola il determinante per determinare se le linee sono parallele
-    double denom = (p4.z - p3.z) * (p2.y - p1.y) - (p4.y - p3.y) * (p2.z - p1.z);
-    if (fabs(denom) < 1e-10) return false; // Le linee sono parallele
+void saveTracesToFile(const string& filename, const Traces& traces)
+{
+    ofstream outputFile(filename);
 
-    double ua = ((p4.y - p3.y) * (p1.z - p3.z) - (p4.z - p3.z) * (p1.y - p3.y)) / denom;
-    double ub = ((p2.y - p1.y) * (p1.z - p3.z) - (p2.z - p1.z) * (p1.y - p3.y)) / denom;
+    if (!outputFile.is_open()) {
+        cerr << "Error opening file: " << filename << endl;
+        return;
+    }
 
-    // Calcola il punto di intersezione
-    intersection.x = p1.x + ua * (p2.x - p1.x);
-    intersection.y = p1.y + ua * (p2.y - p1.y);
-    intersection.z = p1.z + ua * (p2.z - p1.z);
+    // Scrivi il numero di tracce nel file
+    outputFile << "# Number of Traces" << endl;
+    outputFile << traces.traces.size() << endl;
 
-    return (ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0);
+    int traceId; // Dichiarazione di traceId come intero
+
+    // Ciclo per iterare attraverso le tracce nella mappa
+    for (auto it = traces.traces.begin(); it != traces.traces.end(); ++it) {
+        // Scrivi l'intestazione
+        outputFile << "# TraceId; FractureId1; FractureId2; X1; Y1; Z1; X2; Y2; Z2" << endl;
+
+        // Assegna l'ID della traccia
+        traceId = distance(traces.traces.begin(), it);
+
+        // Scrivi i dati della traccia
+        outputFile << traceId << " " << it->first[0] << " " << it->first[1] << " ";
+
+        // Scrivi i punti di intersezione
+        for (const auto& point : it->second) {
+            for (int i = 0; i < point.size(); ++i) {
+                outputFile << point[i];
+                if (i < point.size() - 1) {
+                    outputFile << " ";
+                }
+            }
+            outputFile << " ";
+        }
+        outputFile << endl;
+    }
+
+    outputFile.close();
 }
 
-bool isPointOnLineSegment(const Point3D& p, const Point3D& p1, const Point3D& p2) {
-    double length = calculateLength(p1, p2);
-    double d1 = calculateLength(p, p1);
-    double d2 = calculateLength(p, p2);
-    return fabs(length - (d1 + d2)) < 1e-10;
+// Funzione per verificare se un punto è su un segmento
+bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p)
+{
+    // Calcola il prodotto vettoriale per verificare se il punto è collineare con il segmento
+    double crossProduct = (p.y - p1.y) * (p2.x - p1.x) - (p.x - p1.x) * (p2.y - p1.y);
+    if (fabs(crossProduct) > 1e-6) return false;
+
+    // Verifica se il punto è entro i limiti del segmento
+    double minX = min(p1.x, p2.x);
+    double maxX = max(p1.x, p2.x);
+    double minY = min(p1.y, p2.y);
+    double maxY = max(p1.y, p2.y);
+    double minZ = min(p1.z, p2.z);
+    double maxZ = max(p1.z, p2.z);
+
+    return (p.x >= minX && p.x <= maxX &&
+            p.y >= minY && p.y <= maxY &&
+            p.z >= minZ && p.z <= maxZ);
 }
 
-MyDFN::MyDFN(const string& filename) {
-    fractures = readDFNFromFile(filename);
+// Funzione per calcolare la distanza euclidea tra due punti
+double calculateDistance(const Point& p1, const Point& p2)
+{
+    return sqrt(pow(p2.x - p1.x, 2) +
+                pow(p2.y - p1.y, 2) +
+                pow(p2.z - p1.z, 2));
 }
 
-void MyDFN::calculateTraces() {
-    // Implementazione del calcolo delle tracce
+vector<TraceResult> checkTracePoints(const Traces& traces, const vector<Polygon>& polygons)
+{
+    vector<TraceResult> results;
+    size_t traceId = 0;
+
+    for (const auto& trace : traces.traces) {
+        vector<int> fractureIDs = trace.first;
+        vector<vector<double>> points = trace.second;
+
+        Point p1(points[0][0], points[0][1], points[0][2]);
+        Point p2(points[1][0], points[1][1], points[1][2]);
+        double distance = calculateDistance(p1, p2);
+
+        for (int fractureID : fractureIDs) {
+            bool p1OnPolygon = false;
+            bool p2OnPolygon = false;
+
+            for (size_t i = 0; i < polygons[fractureID].vertices.size(); ++i) {
+                Point polyPoint1 = polygons[fractureID].vertices[i];
+                Point polyPoint2 = polygons[fractureID].vertices[(i + 1) % polygons[fractureID].vertices.size()];
+
+                if (isPointOnEdge(polyPoint1, polyPoint2, p1)) {
+                    p1OnPolygon = true;
+                }
+                if (isPointOnEdge(polyPoint1, polyPoint2, p2)) {
+                    p2OnPolygon = true;
+                }
+            }
+
+            bool isNonPassante = !(p1OnPolygon && p2OnPolygon);
+            cout << "Per FractureId " << fractureID << " e TraceId " << traceId << " è "
+                 << (isNonPassante ? "non passante" : "passante")
+                 << " e la distanza fra i punti è " << distance << endl;
+
+            results.push_back({static_cast<int>(fractureID), static_cast<int>(traceId), isNonPassante, distance});
+        }
+
+        traceId++;
+    }
+
+    return results;
 }
 
-void MyDFN::findTracesBetweenFractures(const Fracture& f1, const Fracture& f2) {
-    // Implementazione della ricerca delle tracce tra fratture
+// Funzione per confrontare due TraceResult in base alla lunghezza (distance)
+bool compareByLength(const TraceResult& a, const TraceResult& b)
+{
+    return a.distance > b.distance; // Ordine decrescente
 }
 
-void MyDFN::classifyTrace(const Trace& trace, vector<Trace>& passTraces, vector<Trace>& nonPassTraces) {
-    // Implementazione della classificazione delle tracce
-}
+void exportTraceResults(const vector<TraceResult>& results, const string& filename)
+{
+    // Suddividi i risultati in passanti e non passanti
+    vector<TraceResult> passanteResults;
+    vector<TraceResult> nonPassanteResults;
 
-void MyDFN::classifyAndSortTraces() {
-    // Implementazione della classificazione e ordinamento delle tracce
-}
+    for (const auto& result : results) {
+        if (result.isNonPassante) {
+            nonPassanteResults.push_back(result);
+        } else {
+            passanteResults.push_back(result);
+        }
+    }
 
-void MyDFN::writeResults(const string& traceFilename, const string& fractureTraceFilename) {
-    writeTracesToFile(traceFilename, traces);
-    writeFractureTracesToFile(fractureTraceFilename, fractureTraces);
-}
+    // Ordina i risultati in ordine decrescente per lunghezza
+    sort(passanteResults.begin(), passanteResults.end(), compareByLength);
+    sort(nonPassanteResults.begin(), nonPassanteResults.end(), compareByLength);
 
-} // namespace DFN
-*/
+    // Apri il file di output
+    ofstream outFile(filename);
+
+    if (!outFile) {
+        cerr << "Errore nell'apertura del file " << filename << endl;
+        return;
+    }
+
+    // Scrivi l'intestazione per FractureId e il numero di tracce
+    map<int, int> fractureCountMap;
+    for (const auto& result : results) {
+        fractureCountMap[result.fractureId]++;
+    }
+
+    outFile << "# FractureId; NumTraces\n";
+    for (const auto& entry : fractureCountMap) {
+        outFile << entry.first << "; " << entry.second << "\n";
+    }
+
+    // Scrivi l'intestazione per TraceId, Tips e Length
+    outFile << "# TraceId; Tips; Length\n";
+
+    // Scrivi i risultati passanti ordinati
+    for (const auto& result : passanteResults) {
+        outFile << result.traceId << "; " << (result.isNonPassante ? "true" : "false") << "; " << result.distance << "\n";
+    }
+
+    // Scrivi i risultati non passanti ordinati
+    for (const auto& result : nonPassanteResults) {
+        outFile << result.traceId << "; " << (result.isNonPassante ? "true" : "false") << "; " << result.distance << "\n";
+    }
+
+    // Chiudi il file di output
+    outFile.close();
+}
