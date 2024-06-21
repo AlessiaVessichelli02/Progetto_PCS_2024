@@ -60,6 +60,7 @@ bool readDFN(const string& filename, Fracture& frattura)
         getline(file, line); // Salto la linea '# Vertices'
 
         MatrixXd vertici(3, numVertices);
+        vertici.setZero();
 
         for (int j = 0; j < 3; ++j) {
             getline(file, line);
