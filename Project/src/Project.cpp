@@ -9,6 +9,7 @@
 #include <map>
 #include <iomanip>
 #include <algorithm>
+#include <tuple>
 #include <Eigen/Eigen>
 
 using namespace std;
@@ -21,6 +22,8 @@ bool readDFN(const string& filename, Fracture& frattura)
         cerr << "Error opening file: " << filename << endl;
         return 1;
     }
+
+    file.precision(16);
 
     string line;
 
@@ -61,6 +64,7 @@ bool readDFN(const string& filename, Fracture& frattura)
         for (int j = 0; j < 3; ++j) {
             getline(file, line);
             stringstream ssVertices(line);
+            ssVertices.precision(16);
             vector<double> vertexRow; // Inizializzo un vettore per memorizzare i vertici riga per riga
 
             for (int k = 0; k < numVertices; ++k) {
@@ -183,8 +187,8 @@ Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2
 {
     Vector3d normal1(plane1.a, plane1.b, plane1.c);
     Vector3d normal2(plane2.a, plane2.b, plane2.c);
-    Vector3d direction = normal1.cross(normal2); // Prodotto vettoriale
-    return direction.normalized(); // Normalizzazione
+    Vector3d direction = normal1.cross(normal2); //prodotto vettoriale
+    return direction.normalized(); //normalizzazione
 }
 
 //funzione che trova un punto sulla linea di intersezione
@@ -198,10 +202,10 @@ Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, co
         plane2.a, plane2.b, plane2.c,
         direction.x(), direction.y(), direction.z();
 
-    b << -plane1.d, -plane2.d, 0.0; // Il prodotto scalare con la direzione è 0
+    b << -plane1.d, -plane2.d, 0.0; //il prodotto scalare con la direzione è 0
 
     // Risolvo il sistema di equazioni
-    Vector3d intersectionPoint = A.colPivHouseholderQr().solve(b); // Effettuo la decomposizione QR con pivotazione su colonne della matrice A
+    Vector3d intersectionPoint = A.colPivHouseholderQr().solve(b); //effettuo la decomposizione QR con pivotazione su colonne della matrice A
     return intersectionPoint;
 }
 
@@ -212,6 +216,7 @@ IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& pla
 
     // Calcola un punto sulla retta di intersezione
     Vector3d point = calculateIntersectionPoint(plane1, plane2, direction);
+
     return {direction, point};
 }
 
@@ -225,7 +230,6 @@ string calculateLineEquation(const Point& p1, const Point& p2)
     return to_string(a) + "x + " + to_string(b) + "y = " + to_string(c);
 }
 
-// Funzione per estrarre le equazioni delle linee dai poligoni
 VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
 {
     VerticesLine verticesLine;
@@ -241,8 +245,7 @@ VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
     return verticesLine;
 }
 
-Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
-{
+Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2) {
     Vector3d originVector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
     Vector3d crossProduct = direction1.cross(direction2);
     if (crossProduct.norm() < 1e-9) {
@@ -254,8 +257,7 @@ Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, 
     return intersectionPoint;
 }
 
-bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection)
-{
+bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection) {
     double minX = min(p1.x, p2.x);
     double maxX = max(p1.x, p2.x);
     double minY = min(p1.y, p2.y);
@@ -268,8 +270,7 @@ bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersec
             intersection.z() >= minZ && intersection.z() <= maxZ);
 }
 
-bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd)
-{
+bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd) {
     // Assicurati che A sia il punto iniziale e B il punto finale per il primo segmento
     Vector3d p1 = (A.x() <= B.x()) ? A : B;
     Vector3d q1 = (A.x() <= B.x()) ? B : A;

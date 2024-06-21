@@ -44,8 +44,8 @@ double calculateDistance(const Point& p1, const Point& p2);
 
 vector<TraceResult> checkTracePoints(const Traces& traces, const vector<Polygon>& polygons);
 
-void exportTraceResults(const vector<TraceResult>& results, const string& filename);
-
 bool compareByLength(const TraceResult& a, const TraceResult& b);
+
+void exportTraceResults(const vector<TraceResult>& results, const string& filename);
 
 #endif // PROJECT_HPP
