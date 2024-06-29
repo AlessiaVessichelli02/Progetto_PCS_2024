@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <limits>
 #include <iomanip>
 #include <cmath>
 #include <map>
@@ -60,16 +59,14 @@ struct VerticesLine {
 
 struct Traces {
 
-    map<vector<int>,vector<vector<double>>> traces; ///< Mappa che associa coppie di FractureID a vettori di coordinate dei punti di intersezione
+    map<vector<int>,vector<vector<double>>> traces;
+    map<int, vector<Point>> intersectionPoints;
 
 };
 
 struct TraceResult {
 
-    int fractureId; ///< ID della frattura
-    int traceId; ///< ID della tracca
-    bool isNonPassante; ///< True se la traccia è non passante, False se è passante
-    double distance; ///< Distanza della traccia
+    map<int, vector<vector<double>>> traces; ///< Mappa che associa FractureID a tracce ordinate per lunghezza
 
 };
 
