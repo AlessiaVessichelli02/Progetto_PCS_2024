@@ -356,71 +356,8 @@ bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, 
     return false;
 }
 
-/*
 void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
 {
-    bool hasIntersectionI = false;
-    bool hasIntersectionJ = false;
-
-    vector<Vector3d> intersectionsI;
-    vector<Vector3d> intersectionsJ;
-
-    for (size_t l = 0; l < polygons[i].vertices.size(); ++l) {
-        Point p1 = polygons[i].vertices[l];
-        Point p2 = polygons[i].vertices[(l + 1) % polygons[i].vertices.size()];
-        Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
-
-        try {
-            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
-            if (isPointOnSegment(p1, p2, intersection)) {
-                hasIntersectionI = true;
-                intersectionsI.push_back(intersection);
-            }
-        } catch (const exception& e) {
-            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
-        }
-    }
-
-    for (size_t l = 0; l < polygons[j].vertices.size(); ++l) {
-        Point p1 = polygons[j].vertices[l];
-        Point p2 = polygons[j].vertices[(l + 1) % polygons[j].vertices.size()];
-        Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
-
-        try {
-            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
-            if (isPointOnSegment(p1, p2, intersection)) {
-                hasIntersectionJ = true;
-                intersectionsJ.push_back(intersection);
-            }
-        } catch (const exception& e) {
-            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
-        }
-    }
-
-    if (hasIntersectionI && hasIntersectionJ) {
-        //vector<int> fractureIDs{i, j};
-        vector<int> fractureIDs{static_cast<int>(i), static_cast<int>(j)};
-        if (intersectionsI == intersectionsJ) {
-            traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()}, {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
-        } else {
-            if (intersectionsI.size() >= 2 && intersectionsJ.size() >= 2) {
-                Vector3d segmentI_start = intersectionsI[0];
-                Vector3d segmentI_end = intersectionsI[1];
-                Vector3d segmentJ_start = intersectionsJ[0];
-                Vector3d segmentJ_end = intersectionsJ[1];
-
-                Vector3d overlapStart, overlapEnd;
-                if (doSegmentsOverlap(segmentI_start, segmentI_end, segmentJ_start, segmentJ_end, overlapStart, overlapEnd)) {
-                    traces.traces[fractureIDs] = { {overlapStart.x(), overlapStart.y(), overlapStart.z()}, {overlapEnd.x(), overlapEnd.y(), overlapEnd.z()} };
-                }
-            }
-        }
-    }
-}
-*/
-void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
-{
-
     bool hasIntersectionI = false;
     bool hasIntersectionJ = false;
 
