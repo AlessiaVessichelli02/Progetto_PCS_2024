@@ -25,7 +25,7 @@ int main() {
     for (size_t i = 0; i < polygons.size(); ++i) {
         for (size_t j = i + 1; j < polygons.size(); ++j) {
 
-            // Se la probabilità è 0, salta il calcolo delle intersezioni
+            // Se doPolygonsIntersect ritorna True, allora si può calcolare le intersezioni
             if (doPolygonsIntersect(polygons[i], polygons[j])) {
 
                 // Calcola la linea di intersezione tra i piani dei poligoni i e j
@@ -42,10 +42,7 @@ int main() {
 
                 // Calcola e stampa le intersezioni effettive
                 calculateAndPrintIntersections(polygons, intersectionLine, i, j, traces);
-            } else {
-                continue;
             }
-
         }
     }
 
