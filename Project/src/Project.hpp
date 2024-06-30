@@ -15,6 +15,8 @@ bool readDFN(const string& filename, Fracture& frattura);
 
 vector<Polygon> createPolygons(const Fracture& frattura);
 
+double calculateDistance(const Point& p1, const Point& p2);
+
 double calculateCircumferenceRadius(const Polygon& poly);
 
 bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2);
@@ -27,10 +29,6 @@ Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, co
 
 IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& plane2);
 
-string calculateLineEquation(const Point& p1, const Point& p2);
-
-VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons);
-
 Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2);
 
 bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection);
@@ -42,8 +40,6 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
 void saveTracesToFile(const string& filename, const Traces& traces);
 
 bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p);
-
-double calculateDistance(const Point& p1, const Point& p2);
 
 bool compareByLength(const TraceResult& a, const TraceResult& b);
 

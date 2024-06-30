@@ -46,7 +46,7 @@ TEST(IsPointOnEdgeTest, PointOnEdge) {
     EXPECT_TRUE(result);
 }
 
-//Test per calculateLineIntersection
+//Test per calculateIntersectionBetweenLines
 TEST(CalculateIntersectionBetweenLinesTest, ParallelLines) {
     Point p1(0.0, 0.0, 0.0);
     Vector3d direction1(1.0, 1.0, 0.0);

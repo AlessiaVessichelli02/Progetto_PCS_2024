@@ -151,6 +151,14 @@ vector<Polygon> createPolygons(const Fracture& frattura)
     return polygons;
 }
 
+// Funzione per calcolare la distanza euclidea tra due punti
+double calculateDistance(const Point& p1, const Point& p2)
+{
+    return sqrt(pow(p2.x - p1.x, 2) +
+                pow(p2.y - p1.y, 2) +
+                pow(p2.z - p1.z, 2));
+}
+
 // Funzione per calcolare il raggio della circonferenza circoscritta a un poligono
 double calculateCircumferenceRadius(const Polygon& poly) {
     // Calcolo del baricentro del poligono
@@ -276,31 +284,6 @@ IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& pla
     Vector3d point = calculateIntersectionPoint(plane1, plane2, direction);
 
     return {direction, point};
-}
-
-
-// Funzione per calcolare l'equazione della retta passante per due punti
-string calculateLineEquation(const Point& p1, const Point& p2)
-{
-    double a = p2.y - p1.y;
-    double b = p1.x - p2.x;
-    double c = a * p1.x + b * p1.y;
-    return to_string(a) + "x + " + to_string(b) + "y = " + to_string(c);
-}
-
-VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
-{
-    VerticesLine verticesLine;
-    for (const auto& poly : polygons) {
-        vector<string> polyLines;
-        for (size_t i = 0; i < poly.vertices.size(); ++i) {
-            Point p1 = poly.vertices[i];
-            Point p2 = poly.vertices[(i + 1) % poly.vertices.size()];
-            polyLines.push_back(calculateLineEquation(p1, p2));
-        }
-        verticesLine.VerticesLines.push_back(polyLines);
-    }
-    return verticesLine;
 }
 
 Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
@@ -498,14 +481,6 @@ bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p)
             p.z >= minZ && p.z <= maxZ);
 }
 
-// Funzione per calcolare la distanza euclidea tra due punti
-double calculateDistance(const Point& p1, const Point& p2)
-{
-    return sqrt(pow(p2.x - p1.x, 2) +
-                pow(p2.y - p1.y, 2) +
-                pow(p2.z - p1.z, 2));
-}
-
 void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult) {
     size_t traceId = 0;
 
@@ -561,6 +536,7 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
     }
 }
 
+/*
 // Funzione per stampare le informazioni di TraceResult
 void printTraceResult(const TraceResult& traceResult) {
     cout << "TraceResult contents:" << endl;
@@ -575,6 +551,7 @@ void printTraceResult(const TraceResult& traceResult) {
         cout << endl;
     }
 }
+*/
 
 void exportTraceResult(const string& filename, const TraceResult& traceResult) {
     ofstream outputFile(filename);
