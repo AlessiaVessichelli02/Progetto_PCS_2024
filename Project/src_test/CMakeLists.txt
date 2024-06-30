@@ -1,4 +1,5 @@
 list(APPEND src_headers "${CMAKE_CURRENT_SOURCE_DIR}/TestDFN.hpp")
+list(APPEND src_headers "${CMAKE_CURRENT_SOURCE_DIR}/TestDFN_utilities.hpp")
 
 set(src_test_sources ${src_sources} PARENT_SCOPE)
 set(src_test_headers ${src_headers} PARENT_SCOPE)

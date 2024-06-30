@@ -24,31 +24,31 @@ struct Fracture {
 
 struct Point {
 
-    double x, y, z; ///< Coordinate del punto
+    double x, y, z;
 
-    Point() : x(0), y(0), z(0) {} ///< Costruttore di default
+    Point() : x(0), y(0), z(0) {}
 
-    Point(double x, double y, double z) : x(x), y(y), z(z) {} ///< Costruttore con parametri
+    Point(double x, double y, double z) : x(x), y(y), z(z) {}
 
 };
 
 struct Polygon {
 
-    vector<Point> vertices; ///< Vettore contenente i vertici del poligono
+    vector<Point> vertices; // Vettore contenente i vertici del poligono
 
 };
 
 struct Plane {
 
-    double a, b, c, d; ///< Coefficienti dell'equazione del piano; ax + by + cz + d = 0
-    vector<Point> vertices; ///< Per mantenere i vertici del piano
+    double a, b, c, d; // Coefficienti dell'equazione del piano; ax + by + cz + d = 0
+    vector<Point> vertices; // Per mantenere i vertici del piano
 
 };
 
 struct IntersectionLine {
 
-    Vector3d direction; ///< Direzione della linea di intersezione
-    Vector3d point; ///< Un punto sulla linea di intersezione
+    Vector3d direction; // Direzione della linea di intersezione
+    Vector3d point; // Un punto sulla linea di intersezione
 
 };
 
@@ -60,16 +60,18 @@ struct VerticesLine {
 
 struct Traces {
 
-    map<vector<int>,vector<vector<double>>> traces; ///< Mappa che associa coppie di FractureID a vettori di coordinate dei punti di intersezione
+    map<vector<int>,vector<vector<double>>> traces;
+    map<int, vector<Point>> intersectionPoints;
 
 };
 
+// Define a structure to store trace data
 struct TraceResult {
 
-    int fractureId; ///< ID della frattura
-    int traceId; ///< ID della tracca
-    bool isNonPassante; ///< True se la traccia è non passante, False se è passante
-    double distance; ///< Distanza della traccia
+    int fractureId;
+    int traceId;
+    bool isNonPassante; // True for non-passant, False for passant
+    double distance;
 
 };
 

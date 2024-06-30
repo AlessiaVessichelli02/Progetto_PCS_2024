@@ -35,7 +35,7 @@ bool readDFN(const string& filename, Fracture& frattura)
 
     frattura.NumFractures = numFractures; // Memorizzo il numero di fratture nell'apposita struttura
 
-    //cout << "Numero di fratture: " << numFractures << endl;
+    cout << "Numero di fratture: " << numFractures << endl;
 
     for (int i = 0; i < numFractures; ++i) {
 
@@ -54,12 +54,13 @@ bool readDFN(const string& filename, Fracture& frattura)
         ss >> numVertices; // Legge ciò che c'è dopo il ';'
         frattura.NumVertices.push_back(numVertices);
 
-        //cout << "FractureId: " << fractureId << ", NumVertici: " << numVertices << endl;
+        cout << "FractureId: " << fractureId << ", NumVertici: " << numVertices << endl;
 
         // Leggo i vertici
         getline(file, line); // Salto la linea '# Vertices'
 
         MatrixXd vertici(3, numVertices);
+        vertici.setZero();
 
         for (int j = 0; j < 3; ++j) {
             getline(file, line);
@@ -99,7 +100,7 @@ bool readDFN(const string& filename, Fracture& frattura)
 
         frattura.Vertices.push_back(vertici);
 
-        //cout << "Vertici: " << endl << vertici << endl;
+        cout << "Vertici: " << endl << vertici << endl;
     }
 
     file.close();
@@ -136,8 +137,8 @@ bool printFracture(const Fracture& frattura)
     }
     return true;
 }
-*/
 
+*/
 //funzione che crea i quadrilateri utilizzando i vertici letti dal file
 vector<Polygon> createPolygons(const Fracture& frattura) {
     vector<Polygon> polygons;
