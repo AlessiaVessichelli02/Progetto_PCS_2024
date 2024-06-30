@@ -15,12 +15,15 @@ bool readDFN(const string& filename, Fracture& frattura);
 
 vector<Polygon> createPolygons(const Fracture& frattura);
 
+double calculateCircumferenceRadius(const Polygon& poly);
+
+bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2);
+
 Plane calculatePlaneEquation(const Polygon& quad);
 
 Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2);
 
 Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, const Vector3d& direction);
-//bool printIntersection(const Plane& plane1, const Plane& plane2, int plane1Index, int plane2Index);
 
 IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& plane2);
 
@@ -42,10 +45,11 @@ bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p);
 
 double calculateDistance(const Point& p1, const Point& p2);
 
-vector<TraceResult> checkTracePoints(const Traces& traces, const vector<Polygon>& polygons);
-
 bool compareByLength(const TraceResult& a, const TraceResult& b);
 
-void exportTraceResults(const vector<TraceResult>& results, const string& filename);
+void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult);
+//void printTraceResult(const TraceResult& traceResult);
+
+void exportTraceResult(const string& filename, const TraceResult& traceResult);
 
 #endif // PROJECT_HPP

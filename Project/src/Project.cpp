@@ -4,12 +4,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <limits>
 #include <cmath>
 #include <map>
 #include <iomanip>
-#include <algorithm>
-#include <tuple>
 #include <Eigen/Eigen>
 
 using namespace std;
@@ -140,7 +137,8 @@ bool printFracture(const Fracture& frattura)
 
 */
 //funzione che crea i quadrilateri utilizzando i vertici letti dal file
-vector<Polygon> createPolygons(const Fracture& frattura) {
+vector<Polygon> createPolygons(const Fracture& frattura)
+{
     vector<Polygon> polygons;
     for (const auto& vertices : frattura.Vertices) {
         Polygon poly;
@@ -151,6 +149,65 @@ vector<Polygon> createPolygons(const Fracture& frattura) {
         polygons.push_back(poly);
     }
     return polygons;
+}
+
+// Funzione per calcolare il raggio della circonferenza circoscritta a un poligono
+double calculateCircumferenceRadius(const Polygon& poly) {
+    // Calcolo del baricentro del poligono
+    Point centroid;
+    for (const auto& vertex : poly.vertices) {
+        centroid.x += vertex.x;
+        centroid.y += vertex.y;
+        centroid.z += vertex.z;
+    }
+    centroid.x /= poly.vertices.size();
+    centroid.y /= poly.vertices.size();
+    centroid.z /= poly.vertices.size();
+
+    // Calcola la distanza massima del baricentro a qualsiasi vertice
+    double maxRadius = 0.0;
+    for (const auto& vertex : poly.vertices) {
+        double dist = calculateDistance(centroid, vertex);
+        if (dist > maxRadius) {
+            maxRadius = dist;
+        }
+    }
+
+    return maxRadius;
+}
+
+// Funzione per verificare se due poligoni si intersecano in base alla distanza delle circonferenze circoscritte
+bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2) {
+    // Calcolo i raggi delle circonferenze circoscritte
+    double radius1 = calculateCircumferenceRadius(poly1);
+    double radius2 = calculateCircumferenceRadius(poly2);
+
+    // Calcolo dei centroidi
+    Point centroid1, centroid2;
+    for (const auto& vertex : poly1.vertices) {
+        centroid1.x += vertex.x;
+        centroid1.y += vertex.y;
+        centroid1.z += vertex.z;
+    }
+    centroid1.x /= poly1.vertices.size();
+    centroid1.y /= poly1.vertices.size();
+    centroid1.z /= poly1.vertices.size();
+
+    for (const auto& vertex : poly2.vertices) {
+        centroid2.x += vertex.x;
+        centroid2.y += vertex.y;
+        centroid2.z += vertex.z;
+    }
+    centroid2.x /= poly2.vertices.size();
+    centroid2.y /= poly2.vertices.size();
+    centroid2.z /= poly2.vertices.size();
+
+    // Calcola la distanza tra i centroidi
+    double distance = calculateDistance(centroid1, centroid2);
+
+    // Verifica se la distanza è minore o uguale alla somma dei raggi
+    double sumRadii = radius1 + radius2;
+    return distance <= sumRadii;
 }
 
 // Funzione per calcolare l'equazione del piano
@@ -246,15 +303,24 @@ VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
     return verticesLine;
 }
 
-Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2) {
+Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
+{
     Vector3d originVector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
     Vector3d crossProduct = direction1.cross(direction2);
+
+    // Verifica se le linee sono parallele
     if (crossProduct.norm() < 1e-9) {
         throw runtime_error("Le rette sono parallele e non si intersecano.");
     }
+
+    // Calcola i parametri t e u per trovare il punto di intersezione
     double t = originVector.cross(direction2).dot(crossProduct) / crossProduct.squaredNorm();
     double u = originVector.cross(direction1).dot(crossProduct) / crossProduct.squaredNorm();
+
+    // Calcola il punto di intersezione sulla prima linea
     Vector3d intersectionPoint = Vector3d(p1.x, p1.y, p1.z) + direction1 * t;
+
+    // Restituisce il punto di intersezione
     return intersectionPoint;
 }
 
@@ -281,7 +347,7 @@ bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, 
     Vector3d q2 = (C.x() <= D.x()) ? D : C;
 
     // Verifica se c'è un'intersezione tra gli intervalli [p1, q1] e [p2, q2]
-    if (std::max(p1.x(), p2.x()) <= std::min(q1.x(), q2.x())) {
+    if (max(p1.x(), p2.x()) <= min(q1.x(), q2.x())) {
         overlapStart = (p1.x() > p2.x()) ? p1 : p2;
         overlapEnd = (q1.x() < q2.x()) ? q1 : q2;
         return true;
@@ -310,7 +376,8 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
                 intersectionsI.push_back(intersection);
             }
         } catch (const exception& e) {
-            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
+            //cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
+            continue; // Se incontra degli errori, deve andare avanti
         }
     }
 
@@ -326,8 +393,25 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
                 intersectionsJ.push_back(intersection);
             }
         } catch (const exception& e) {
-            cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
+            //cerr << "Errore nel calcolo dell'intersezione: " << e.what() << endl;
+            continue;
         }
+    }
+
+    if (hasIntersectionI && hasIntersectionJ) {
+        cout << "Intersezioni per il poligono " << i << ": ";
+        for (const auto& intersection : intersectionsI) {
+            cout << "(" << intersection.x() << ", " << intersection.y() << ", " << intersection.z() << ")";
+        }
+        cout << endl;
+
+        cout << "Intersezioni per il poligono " << j << ": ";
+        for (const auto& intersection : intersectionsJ) {
+            cout << "(" << intersection.x() << ", " << intersection.y() << ", " << intersection.z() << ")";
+        }
+        cout << endl;
+    } else {
+        cout << "I poligoni " << i << " e " << j << " non intersecano entrambi la retta di intersezione tra i piani" << endl;
     }
 
     if (hasIntersectionI && hasIntersectionJ) {
@@ -350,6 +434,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         }
     }
 }
+
 
 void saveTracesToFile(const string& filename, const Traces& traces)
 {
@@ -421,9 +506,7 @@ double calculateDistance(const Point& p1, const Point& p2)
                 pow(p2.z - p1.z, 2));
 }
 
-vector<TraceResult> checkTracePoints(const Traces& traces, const vector<Polygon>& polygons)
-{
-    vector<TraceResult> results;
+void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult) {
     size_t traceId = 0;
 
     for (const auto& trace : traces.traces) {
@@ -451,55 +534,68 @@ vector<TraceResult> checkTracePoints(const Traces& traces, const vector<Polygon>
             }
 
             bool isNonPassante = !(p1OnPolygon && p2OnPolygon);
-            cout << "Per FractureId " << fractureID << " e TraceId " << traceId << " è "
-                 << (isNonPassante ? "non passante" : "passante")
-                 << " e la distanza fra i punti è " << distance << endl;
+            int tips = isNonPassante ? 1 : 0;
 
-            results.push_back({static_cast<int>(fractureID), static_cast<int>(traceId), isNonPassante, distance});
+            traceResult.traces[fractureID].push_back({static_cast<double>(traceId), static_cast<double>(tips), distance, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z});
         }
 
         traceId++;
     }
 
-    return results;
+    // Ordina le tracce per ciascuna frattura
+    for (auto& entry : traceResult.traces) {
+        vector<vector<double>>& fractureTraces = entry.second;
+        sort(fractureTraces.begin(), fractureTraces.end(), [](const vector<double>& a, const vector<double>& b) {
+            bool isNonPassanteA = a[1] == 1; // Controlla se la traccia 'a' è non passante
+            bool isNonPassanteB = b[1] == 1; // Controlla se la traccia 'b' è non passante
+
+            // Se entrambe le tracce sono passanti o entrambe non passanti, ordinale per distanza decrescente
+            if ((isNonPassanteA && isNonPassanteB) || (!isNonPassanteA && !isNonPassanteB)) {
+                return a[2] > b[2]; // Ordina per distanza decrescente
+            } else if (isNonPassanteA && !isNonPassanteB) {
+                return false; // 'a' è non passante e 'b' è passante, metti 'a' dopo 'b'
+            } else {
+                return true; // 'b' è non passante e 'a' è passante, metti 'a' prima di 'b'
+            }
+        });
+    }
 }
 
-// Funzione per confrontare due TraceResult in base alla lunghezza (distance)
-bool compareByLength(const TraceResult& a, const TraceResult& b)
-{
-    return a.distance > b.distance; // Ordine decrescente
+// Funzione per stampare le informazioni di TraceResult
+void printTraceResult(const TraceResult& traceResult) {
+    cout << "TraceResult contents:" << endl;
+    for (auto it = traceResult.traces.begin(); it != traceResult.traces.end(); ++it) {
+        cout << "Fracture ID: " << it->first << endl;
+        cout << "Number of traces: " << it->second.size() << endl;
+        cout << "Traces:" << endl;
+        for (const auto& trace : it->second) {
+            cout << "  TraceID: " << static_cast<int>(trace[0]) << ", Tips: " << static_cast<int>(trace[1]) << ", Length: " << trace[2]
+                 << ", Points (" << trace[3] << ", " << trace[4] << ", " << trace[5] << ")-(" << trace[6] << ", " << trace[7] << ", " << trace[8] << ")" << endl;
+        }
+        cout << endl;
+    }
 }
 
-void exportTraceResults(const vector<TraceResult>& results, const string& filename) {
-    ofstream outFile(filename);
-    if (!outFile.is_open()) {
-        cerr << "Errore nell'apertura del file di output." << endl;
+void exportTraceResult(const string& filename, const TraceResult& traceResult) {
+    ofstream outputFile(filename);
+
+    if (!outputFile.is_open()) {
+        cerr << "Error opening file: " << filename << endl;
         return;
     }
 
-    // Raggruppa i risultati per FractureId
-    map<int, vector<TraceResult>> resultsByFracture;
-    for (const auto& result : results) {
-        resultsByFracture[result.fractureId].push_back(result);
-    }
+    // Scrivi le informazioni per ogni frattura
+    for (auto it = traceResult.traces.begin(); it != traceResult.traces.end(); ++it) {
+        // Frattura ID
+        int fractureId = it->first;
+        outputFile << "# FractureId; NumTraces" << endl;
+        outputFile << fractureId << "; " << it->second.size() << endl;
 
-    // Scrivi i risultati nel file con il nuovo formato
-    for (auto& [fractureId, traceResults] : resultsByFracture) {
-        // Ordina i risultati per isNonPassante e poi per lunghezza (distance) in ordine decrescente
-        sort(traceResults.begin(), traceResults.end(), [](const TraceResult& a, const TraceResult& b) {
-            if (a.isNonPassante != b.isNonPassante) {
-                return !a.isNonPassante && b.isNonPassante;  // Passanti (isNonPassante = false) prima di non passanti (isNonPassante = true)
-            }
-            return b.distance < a.distance;  // Ordinamento decrescente per lunghezza
-        });
-
-        outFile << "# FractureId; NumTraces\n";
-        outFile << fractureId << "; " << traceResults.size() << "\n";
-        outFile << "# TraceId; Tips; Length\n";
-        for (const auto& result : traceResults) {
-            outFile << result.traceId << "; " << (result.isNonPassante ? 1 : 0) << "; " << result.distance << "\n";
+        // Scrivi le informazioni delle tracce
+        outputFile << "# TraceId; Tips; Length" << endl;
+        for (const auto& trace : it->second) {
+            outputFile << static_cast<int>(trace[0]) << "; " << static_cast<int>(trace[1]) << "; " << fixed << setprecision(16) << trace[2] << endl;
         }
     }
-
-    outFile.close();
+    outputFile.close();
 }
