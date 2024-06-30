@@ -19,6 +19,18 @@ int main() {
 
     vector<Polygon> polygons = createPolygons(frattura);
 
+    vector<Plane> planes;
+    for (size_t i = 0; i < polygons.size(); ++i) {
+        const auto& poly = polygons[i];
+        cout << "Polygon " << i << " vertices:\n";
+        for (size_t j = 0; j < poly.vertices.size(); ++j) {
+            cout << "P" << j + 1 << ": (" << poly.vertices[j].x << ", " << poly.vertices[j].y << ", " << poly.vertices[j].z << ")\n";
+        }
+        Plane plane = calculatePlaneEquation(poly);
+        planes.push_back(plane);
+        cout << "Equation of the plane: " << plane.a << "x + " << plane.b << "y + " << plane.c << "z + " << plane.d << " = 0\n\n";
+    }
+
     Traces traces; // Inizializzazione della struttura Traces
 
     // Itera su tutti i possibili coppie di poligoni

@@ -31,7 +31,7 @@ string calculateLineEquation(const Point& p1, const Point& p2);
 
 VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons);
 
-Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2);
+Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2);
 
 bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection);
 

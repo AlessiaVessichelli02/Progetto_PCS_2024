@@ -303,7 +303,7 @@ VerticesLine extractLinesFromPolygons(const vector<Polygon>& polygons)
     return verticesLine;
 }
 
-Vector3d calculateLineIntersection(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
+Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
 {
     Vector3d originVector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
     Vector3d crossProduct = direction1.cross(direction2);
@@ -370,7 +370,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
 
         try {
-            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
             if (isPointOnSegment(p1, p2, intersection)) {
                 hasIntersectionI = true;
                 intersectionsI.push_back(intersection);
@@ -387,7 +387,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
 
         try {
-            Vector3d intersection = calculateLineIntersection(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
             if (isPointOnSegment(p1, p2, intersection)) {
                 hasIntersectionJ = true;
                 intersectionsJ.push_back(intersection);

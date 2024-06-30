@@ -64,17 +64,9 @@ struct Traces {
 
 };
 
-// Define a structure to store trace data
 struct TraceResult {
 
-<<<<<<< HEAD
-    int fractureId;
-    int traceId;
-    bool isNonPassante; // True for non-passant, False for passant
-    double distance;
-=======
     map<int, vector<vector<double>>> traces; ///< Mappa che associa FractureID a tracce ordinate per lunghezza
->>>>>>> f5ee5d801dbdb2f5b87188654366c2c8cdb15ad4
 
 };
 
