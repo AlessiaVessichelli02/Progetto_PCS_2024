@@ -25,7 +25,7 @@ struct Point {
 
     double x, y, z;
 
-    Point() : x(0), y(0), z(0) {}
+    Point() : x(), y(), z() {} // Inizializzatore di Default
 
     Point(double x, double y, double z) : x(x), y(y), z(z) {}
 
@@ -59,14 +59,14 @@ struct VerticesLine {
 
 struct Traces {
 
-    map<vector<int>,vector<vector<double>>> traces;
-    map<int, vector<Point>> intersectionPoints;
+    map<vector<unsigned int>,vector<vector<double>>> traces;
+    map<unsigned int, vector<Point>> intersectionPoints;
 
 };
 
 struct TraceResult {
 
-    map<int, vector<vector<double>>> traces; ///< Mappa che associa FractureID a tracce ordinate per lunghezza
+    map<unsigned int, vector<vector<double>>> traces; ///< Mappa che associa FractureID a tracce ordinate per lunghezza
 
 };
 

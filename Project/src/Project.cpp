@@ -12,6 +12,7 @@
 using namespace std;
 using namespace Eigen;
 
+// Funzione che legge i dati delle fratture da un file e le memorizza nella struttura Fracture
 bool readDFN(const string& filename, Fracture& frattura)
 {
     ifstream file(filename);
@@ -40,7 +41,6 @@ bool readDFN(const string& filename, Fracture& frattura)
         getline(file, line); // Salto la linea '# FractureId; NumVertices'
         getline(file, line); // Leggo il numero di fratture
         stringstream ss(line);
-        //char ch;
         int fractureId;
         int numVertices;
 
@@ -105,6 +105,7 @@ bool readDFN(const string& filename, Fracture& frattura)
 }
 
 /*
+// Funzione che stampa ciò che c'è all'interno della struttura Fracture
 bool printFracture(const Fracture& frattura)
 {
     cout << "Numero totale di fratture: " << frattura.NumFractures << endl;
@@ -136,7 +137,7 @@ bool printFracture(const Fracture& frattura)
 }
 
 */
-//funzione che crea i quadrilateri utilizzando i vertici letti dal file
+//funzione che crea i poligoni utilizzando i vertici letti dal file
 vector<Polygon> createPolygons(const Fracture& frattura)
 {
     vector<Polygon> polygons;
@@ -159,7 +160,7 @@ double calculateDistance(const Point& p1, const Point& p2)
                 pow(p2.z - p1.z, 2));
 }
 
-// Funzione per calcolare il raggio della circonferenza circoscritta a un poligono
+// Funzione per calcolare il raggio della sfera circoscritta a un poligono
 double calculateCircumferenceRadius(const Polygon& poly) {
     // Calcolo del baricentro del poligono
     Point centroid;
@@ -218,7 +219,7 @@ bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2) {
     return distance <= sumRadii;
 }
 
-// Funzione per calcolare l'equazione del piano
+// Funzione per calcolare l'equazione del piano su cui giacciono. i poligoni
 Plane calculatePlaneEquation(const Polygon& poly) {
     if (poly.vertices.size() < 3) {
         throw invalid_argument("Il Poligono deve avere almeno 3 vertici.");
@@ -257,7 +258,7 @@ Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2
     return direction.normalized(); //normalizzazione
 }
 
-//funzione che trova un punto sulla linea di intersezione
+// Funzione che trova un punto sulla linea di intersezione
 Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, const Vector3d& direction)
 {
     Matrix3d A;
@@ -275,6 +276,7 @@ Vector3d calculateIntersectionPoint(const Plane& plane1, const Plane& plane2, co
     return intersectionPoint;
 }
 
+// Funzione che combina la direzione e il punto di intersezione per ottenere la retta d'intersezione
 IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& plane2)
 {
     // Calcola la direzione della retta di intersezione
@@ -286,6 +288,7 @@ IntersectionLine calculateIntersectionLine(const Plane& plane1, const Plane& pla
     return {direction, point};
 }
 
+// Funzione che calcola il punto di intersezione tra due rette
 Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& direction1, const Point& p2, const Vector3d& direction2)
 {
     Vector3d originVector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
@@ -307,7 +310,9 @@ Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& dire
     return intersectionPoint;
 }
 
-bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection) {
+// Funzione che verifica se un punto si trova su un segmento
+bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection)
+{
     double minX = min(p1.x, p2.x);
     double maxX = max(p1.x, p2.x);
     double minY = min(p1.y, p2.y);
@@ -320,7 +325,9 @@ bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersec
             intersection.z() >= minZ && intersection.z() <= maxZ);
 }
 
-bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd) {
+// Funzione che verifica se due segmenti si sovrappongono
+bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd)
+{
     // Assicurati che A sia il punto iniziale e B il punto finale per il primo segmento
     Vector3d p1 = (A.x() <= B.x()) ? A : B;
     Vector3d q1 = (A.x() <= B.x()) ? B : A;
@@ -339,6 +346,7 @@ bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, 
     return false;
 }
 
+// Funzione che calcola e stampa le intersezioni tra poligoni e trova le tracce
 void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
 {
     // Se non intersecano, esce dalla funzione
@@ -404,7 +412,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
 
     if (hasIntersectionI && hasIntersectionJ) {
         //vector<int> fractureIDs{i, j};
-        vector<int> fractureIDs{static_cast<int>(i), static_cast<int>(j)};
+        vector<unsigned int> fractureIDs{static_cast<unsigned int>(i), static_cast<unsigned int>(j)};
         if (intersectionsI == intersectionsJ) {
             traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()}, {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
         } else {
@@ -423,7 +431,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
     }
 }
 
-
+// Funzione per salvare le tracce calcolate in un file
 void saveTracesToFile(const string& filename, const Traces& traces)
 {
     ofstream outputFile(filename);
@@ -466,36 +474,20 @@ void saveTracesToFile(const string& filename, const Traces& traces)
     outputFile.close();
 }
 
-// Funzione per verificare se un punto è su un segmento
-bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p)
-{
-    // Calcola il prodotto vettoriale per verificare se il punto è collineare con il segmento
-    double crossProduct = (p.y - p1.y) * (p2.x - p1.x) - (p.x - p1.x) * (p2.y - p1.y);
-    if (fabs(crossProduct) > 1e-6) return false;
-
-    // Verifica se il punto è entro i limiti del segmento
-    double minX = min(p1.x, p2.x);
-    double maxX = max(p1.x, p2.x);
-    double minY = min(p1.y, p2.y);
-    double maxY = max(p1.y, p2.y);
-    double minZ = min(p1.z, p2.z);
-    double maxZ = max(p1.z, p2.z);
-
-    return (p.x >= minX && p.x <= maxX &&
-            p.y >= minY && p.y <= maxY &&
-            p.z >= minZ && p.z <= maxZ);
-}
-
+// Funzione che verifica e classifica le tracce calcolate, determinando se sono passanti o non passanti
 void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult) {
     size_t traceId = 0;
 
     for (const auto& trace : traces.traces) {
-        vector<int> fractureIDs = trace.first;
+        vector<unsigned int> fractureIDs = trace.first;
         vector<vector<double>> points = trace.second;
 
         Point p1(points[0][0], points[0][1], points[0][2]);
         Point p2(points[1][0], points[1][1], points[1][2]);
         double distance = calculateDistance(p1, p2);
+
+        Vector3d v1(p1.x, p1.y, p1.z);
+        Vector3d v2(p2.x, p2.y, p2.z);
 
         for (int fractureID : fractureIDs) {
             bool p1OnPolygon = false;
@@ -505,10 +497,10 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
                 Point polyPoint1 = polygons[fractureID].vertices[i];
                 Point polyPoint2 = polygons[fractureID].vertices[(i + 1) % polygons[fractureID].vertices.size()];
 
-                if (isPointOnEdge(polyPoint1, polyPoint2, p1)) {
+                if (isPointOnSegment(polyPoint1, polyPoint2, v1)) {
                     p1OnPolygon = true;
                 }
-                if (isPointOnEdge(polyPoint1, polyPoint2, p2)) {
+                if (isPointOnSegment(polyPoint1, polyPoint2, v2)) {
                     p2OnPolygon = true;
                 }
             }
@@ -558,6 +550,7 @@ void printTraceResult(const TraceResult& traceResult) {
 }
 */
 
+// Funzione per esportare i risultati in un file
 void exportTraceResult(const string& filename, const TraceResult& traceResult) {
     ofstream outputFile(filename);
 

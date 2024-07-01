@@ -39,7 +39,7 @@ struct Plane {
 // Funzione per calcolare la distanza euclidea tra due punti
 double calculateDistance(const Point& p1, const Point& p2);
 
-bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p);
+bool isPointOnSegment(const Point& p1, const Point& p2, const Point& p);
 
 Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2);
 

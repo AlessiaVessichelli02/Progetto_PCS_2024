@@ -36,12 +36,12 @@ TEST(CalculateDistanceTest, DistanceCalculation) {
 }
 
 //Test per isPointOnEdge
-TEST(IsPointOnEdgeTest, PointOnEdge) {
+TEST(IsPointOnSegmentTest, PointOnSegment) {
     Point p1(0.0, 0.0, 0.0);
     Point p2(2.0, 2.0, 0.0);
-    Point p(1.0, 1.0, 0.0);
+    Vector3d v(1.0, 1.0, 0.0);
 
-    bool result = isPointOnEdge(p1, p2, p);
+    bool result = isPointOnSegment(p1, p2, v);
 
     EXPECT_TRUE(result);
 }

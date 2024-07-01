@@ -39,8 +39,6 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
 
 void saveTracesToFile(const string& filename, const Traces& traces);
 
-bool isPointOnEdge(const Point& p1, const Point& p2, const Point& p);
-
 bool compareByLength(const TraceResult& a, const TraceResult& b);
 
 void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult);
