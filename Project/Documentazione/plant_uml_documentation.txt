@@ -1,0 +1,75 @@
+@startuml
+
+Class Fracture { 
+  + NumFractures: unsigned int
+  + FractureId: vector<unsigned int>
+  + NumVertices: vector<unsigned int>
+  + Vertices: vector<MatrixXd>
+}
+Class Point {
+  + x, y, z: double
+..Constracturs..
+  Point() : x(), y(), z() {}
+  Point(double x, double y, double z) : x(x), y(y), z(z) {}
+}
+Class Polygon {
+  + vertices: vector<Point>
+}
+Class Plane {
+  + a, b, c, d: double
+}
+Class IntersectionLine {
+  + direction: Vector3d
+  + point: Vector3d
+}
+Class Traces {
+ + traces: map<vector<unsigned int>, vector<vector<double>>>
+ + intersectionPoints: map<unsigned int, vector<Point>>
+}
+Class TraceResult {
+  + traces: map<unsigned int, vector<vector<double>>>
+}
+Class Functions {
+  + bool readDFN(string& filename, Fracture);
+  + vector<Polygon> createPolygons(Fracture&);
+  + double calculateDistance(Point&, Point&);
+  + double calculateCircumferenceRadius(Polygon&);
+  + bool doPolygonsIntersect(Polygon&, Polygon&);
+  + Plane calculatePlaneEquation(Polygon&);
+  + Vector3d calculateIntersectionDirection(Plane&, Plane&);
+  + Vector3d calculateIntersectionPoint(Plane& ,Plane& plane2, Vector3d&);
+  + IntersectionLine calculateIntersectionLine(Plane&, Plane&);
+  + Vector3d calculateIntersectionBetweenLines(Point&, Vector3d&, Point&, Vector3d&);
+  + bool isPointOnSegment(Point&, Point&, Vector3d&);
+  + bool doSegmentsOverlap(Vector3d&, Vector3d&, Vector3d&, Vector3d&, Vector3d&, Vector3d&);
+  + void calculateAndPrintIntersections(vector<Polygon>&, IntersectionLine&, i, j, Traces);
+  + void saveTracesToFile(string& filename, Traces& traces);
+  + bool compareByLength(TraceResult&, TraceResult&);
+  + void checkTracePoints(Traces&, vector<Polygon>& polygons, TraceResult);
+  + void exportTraceResult(string& filename, TraceResult&);
+}
+Functions::calculatePlaneEquation ..left..> Plane
+Plane --right--> Functions::calculateIntersectionDirection
+Plane --right--> Functions::calculateIntersectionPoint
+Plane --right--> Functions::calculateIntersectionLine
+Plane -[hidden]-> TraceResult 
+Functions::readDFN ..up..> Fracture
+Fracture --down--> Functions::createPolygons
+IntersectionLine --up--> Functions::calculateAndPrintIntersections
+Functions::calculateIntersectionLine ..down..> IntersectionLine
+Functions::createPolygons ..up..> Polygon
+Polygon --left--> Functions::calculateCircumferenceRadius
+Polygon --left--> Functions::doPolygonsIntersect
+Polygon --left--> Functions::calculatePlaneEquation
+Polygon --left--> Functions::calculateAndPrintIntersections
+Polygon --left--> Functions::checkTracePoints
+Functions::calculateAndPrintIntersections ..left..> Traces
+Traces --left--> Functions::saveTracesToFile
+Traces --left--> Functions::checkTracePoints
+Polygon "many" --o "0" Point : is made up
+Traces "many" --o "0" Point : is made up
+TraceResult --up--> Functions::compareByLength
+TraceResult --up--> Functions::checkTracePoints
+TraceResult --up--> Functions::exportTraceResult
+
+@enduml
