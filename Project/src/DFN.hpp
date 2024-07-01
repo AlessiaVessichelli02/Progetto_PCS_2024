@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <cmath>
 #include <map>
-#include <Eigen/Dense>
+#include <Eigen/Eigen>
 
 using namespace std;
 using namespace Eigen;
@@ -25,42 +25,35 @@ struct Point {
 
     double x, y, z;
 
-    Point() : x(), y(), z() {} // Inizializzatore di Default
+    Point() : x(), y(), z() {} ///< Inizializzatore di Default
 
-    Point(double x, double y, double z) : x(x), y(y), z(z) {}
+    Point(double x, double y, double z) : x(x), y(y), z(z) {} ///< Costruttore
 
 };
 
 struct Polygon {
 
-    vector<Point> vertices; // Vettore contenente i vertici del poligono
+    vector<Point> vertices; ///< Vettore contenente i vertici del poligono
 
 };
 
 struct Plane {
 
-    double a, b, c, d; // Coefficienti dell'equazione del piano; ax + by + cz + d = 0
-    vector<Point> vertices; // Per mantenere i vertici del piano
+    double a, b, c, d; ///< Coefficienti dell'equazione del piano; ax + by + cz + d = 0
+    vector<Point> vertices; ///< Per mantenere i vertici del piano
 
 };
 
 struct IntersectionLine {
 
-    Vector3d direction; // Direzione della linea di intersezione
-    Vector3d point; // Un punto sulla linea di intersezione
-
-};
-
-struct VerticesLine {
-
-    vector<vector<string>> VerticesLines;
+    Vector3d direction; ///< Direzione della linea di intersezione
+    Vector3d point; ///< Un punto sulla linea di intersezione
 
 };
 
 struct Traces {
 
-    map<vector<unsigned int>,vector<vector<double>>> traces;
-    map<unsigned int, vector<Point>> intersectionPoints;
+    map<vector<int>,vector<vector<double>>> traces; ///< Mappa che assoccia ad una coppia di FractureID i punti della traccia in comune
 
 };
 

@@ -17,8 +17,12 @@ int main() {
         return 1;
     }
 
+    // Stampa cosa c'è all'interno della struttura Fracture
+    //printFracture(frattura);
+
     vector<Polygon> polygons = createPolygons(frattura);
 
+    /*
     vector<Plane> planes;
     for (size_t i = 0; i < polygons.size(); ++i) {
         const auto& poly = polygons[i];
@@ -30,6 +34,7 @@ int main() {
         planes.push_back(plane);
         cout << "Equation of the plane: " << plane.a << "x + " << plane.b << "y + " << plane.c << "z + " << plane.d << " = 0\n\n";
     }
+    */
 
     Traces traces; // Inizializzazione della struttura Traces
 
@@ -45,12 +50,14 @@ int main() {
                 Plane plane2 = calculatePlaneEquation(polygons[j]);
                 IntersectionLine intersectionLine = calculateIntersectionLine(plane1, plane2);
 
+                /*
                 // Stampa le informazioni sulla linea di intersezione
                 cout << "Linea di intersezione tra il poligono " << i << " e il poligono " << j << ":" << endl;
                 cout << "Punto sulla linea di intersezione: (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ")" << endl;
                 cout << "Vettore direzione: (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
                 cout << "Equazione della linea di intersezione: "
                      << "r(t) = (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ") + t * (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
+                */
 
                 // Calcola e stampa le intersezioni effettive
                 calculateAndPrintIntersections(polygons, intersectionLine, i, j, traces);
@@ -58,7 +65,7 @@ int main() {
         }
     }
 
-
+    /*
     // Stampa la struttura Traces
     cout << "Traces:" << endl;
     for (const auto& trace : traces.traces) {
@@ -80,6 +87,7 @@ int main() {
         }
         cout << endl;
     }
+    */
 
     saveTracesToFile("Traces_output.txt", traces);
 

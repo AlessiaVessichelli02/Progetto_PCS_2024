@@ -4,11 +4,6 @@
 #ifndef __TESTDFN_HPP
 #define __TESTDFN_HPP
 
-/*
-#include "DFN.hpp"
-#include "Project.hpp"
-*/
-
 #include <gtest/gtest.h>
 #include "TestDFN_Utilities.hpp"
 #include "Eigen/Eigen"
@@ -35,7 +30,7 @@ TEST(CalculateDistanceTest, DistanceCalculation) {
     EXPECT_DOUBLE_EQ(actual_distance, expected_distance);
 }
 
-//Test per isPointOnEdge
+//Test per isPointOnSegment
 TEST(IsPointOnSegmentTest, PointOnSegment) {
     Point p1(0.0, 0.0, 0.0);
     Point p2(2.0, 2.0, 0.0);
@@ -79,5 +74,35 @@ TEST(DoSegmentsOverlapTest, OverlapDetection) {
     EXPECT_TRUE(result);
 }
 
+// Test per calculateSphereRadius
+TEST(CalculateSphereRadiusTest, RegularPolygonTest) {
+    // Creiamo un poligono di esempio
+    Polygon poly;
+    poly.vertices = { {0.0, 0.0, 0.0}, {2.0, 0.0, 0.0}, {2.0, 2.0, 0.0}, {0.0, 2.0, 0.0} };
+
+    // Calcoliamo il raggio della circonferenza
+    double radius = calculateSphereRadius(poly);
+
+    // Raggio atteso: in questo caso, la distanza dal baricentro (1.0, 1.0, 0.0) al vertice (2.0, 2.0, 0.0)
+    double expectedRadius = sqrt(2.0); // Raggio atteso è la distanza tra (1.0, 1.0, 0.0) e (2.0, 2.0, 0.0)
+
+    double tolDefault = 10 * numeric_limits<double>::epsilon();
+    // Verifica con tolleranza
+    EXPECT_NEAR(radius, expectedRadius, tolDefault);
+}
+
+// Test per doPolygonsIntersect
+TEST(DoPolygonsIntersectTest, IntersectingPolygons) {
+    Polygon poly1 = { {{0, 0, 0}, {2, 0, 0}, {1, 1.73, 0}} };//triangolo sul piano XY
+    Polygon poly2 = { {{1, 0, 0}, {3, 0, 0}, {2, 1.73, 0}} };//triangolo traslato di (1,0,0)
+    EXPECT_TRUE(doPolygonsIntersect(poly1, poly2));//i poligoni si intersecano
+}
+
+TEST(DoPolygonsIntersectTest, NonIntersectingPolygons) {
+    Polygon poly1 = { {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}} };//triangolo sul piano XY
+    Polygon poly2 = { {{2, 2, 0}, {3, 2, 0}, {2, 3, 0}} };//triangolo traslato di (2,2,0)
+    EXPECT_FALSE(doPolygonsIntersect(poly1, poly2));//i poligoni non si intersecano
+}
 
 #endif // TEST_DFN_HPP
+

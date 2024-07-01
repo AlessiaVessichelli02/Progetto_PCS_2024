@@ -161,7 +161,7 @@ double calculateDistance(const Point& p1, const Point& p2)
 }
 
 // Funzione per calcolare il raggio della sfera circoscritta a un poligono
-double calculateCircumferenceRadius(const Polygon& poly) {
+double calculateSphereRadius(const Polygon& poly) {
     // Calcolo del baricentro del poligono
     Point centroid;
     for (const auto& vertex : poly.vertices) {
@@ -188,8 +188,8 @@ double calculateCircumferenceRadius(const Polygon& poly) {
 // Funzione per verificare se due poligoni si intersecano in base alla distanza delle circonferenze circoscritte
 bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2) {
     // Calcolo i raggi delle circonferenze circoscritte
-    double radius1 = calculateCircumferenceRadius(poly1);
-    double radius2 = calculateCircumferenceRadius(poly2);
+    double radius1 = calculateSphereRadius(poly1);
+    double radius2 = calculateSphereRadius(poly2);
 
     // Calcolo dei centroidi
     Point centroid1, centroid2;
@@ -394,6 +394,7 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         }
     }
 
+    /*
     if (hasIntersectionI && hasIntersectionJ) {
         cout << "Intersezioni per il poligono " << i << ": ";
         for (const auto& intersection : intersectionsI) {
@@ -409,10 +410,11 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
     } else {
         cout << "I poligoni " << i << " e " << j << " non intersecano entrambi la retta di intersezione tra i piani" << endl;
     }
+    */
 
     if (hasIntersectionI && hasIntersectionJ) {
         //vector<int> fractureIDs{i, j};
-        vector<unsigned int> fractureIDs{static_cast<unsigned int>(i), static_cast<unsigned int>(j)};
+        vector<int> fractureIDs{static_cast<int>(i), static_cast<int>(j)};
         if (intersectionsI == intersectionsJ) {
             traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()}, {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
         } else {
@@ -440,6 +442,9 @@ void saveTracesToFile(const string& filename, const Traces& traces)
         cerr << "Error opening file: " << filename << endl;
         return;
     }
+
+    // Imposta la precisione a 16 cifre decimali
+    outputFile << setprecision(16) << fixed;
 
     // Scrivi il numero di tracce nel file
     outputFile << "# Number of Traces" << endl;
@@ -479,7 +484,7 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
     size_t traceId = 0;
 
     for (const auto& trace : traces.traces) {
-        vector<unsigned int> fractureIDs = trace.first;
+        vector<int> fractureIDs = trace.first;
         vector<vector<double>> points = trace.second;
 
         Point p1(points[0][0], points[0][1], points[0][2]);

@@ -17,7 +17,7 @@ vector<Polygon> createPolygons(const Fracture& frattura);
 
 double calculateDistance(const Point& p1, const Point& p2);
 
-double calculateCircumferenceRadius(const Polygon& poly);
+double calculateSphereRadius(const Polygon& poly);
 
 bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2);
 

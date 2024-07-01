@@ -36,10 +36,16 @@ struct Plane {
 
 };
 
+struct Polygon {
+
+    vector<Point> vertices; // Vettore contenente i vertici del poligono
+
+};
+
 // Funzione per calcolare la distanza euclidea tra due punti
 double calculateDistance(const Point& p1, const Point& p2);
 
-bool isPointOnSegment(const Point& p1, const Point& p2, const Point& p);
+bool isPointOnSegment(const Point& p1, const Point& p2, const Vector3d& intersection);
 
 Vector3d calculateIntersectionDirection(const Plane& plane1, const Plane& plane2);
 
@@ -49,5 +55,10 @@ Vector3d calculateIntersectionBetweenLines(const Point& p1, const Vector3d& dire
 
 bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, const Vector3d& D, Vector3d& overlapStart, Vector3d& overlapEnd);
 
+double calculateSphereRadius(const Polygon& poly);
+
+bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2);
+
 
 #endif
+
