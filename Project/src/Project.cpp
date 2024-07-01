@@ -341,6 +341,11 @@ bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, 
 
 void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
 {
+    // Se non intersecano, esce dalla funzione
+    if (!doPolygonsIntersect(polygons[i], polygons[j])) {
+        return;
+    }
+
     bool hasIntersectionI = false;
     bool hasIntersectionJ = false;
 
