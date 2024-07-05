@@ -33,7 +33,7 @@ bool readDFN(const string& filename, Fracture& frattura)
 
     frattura.NumFractures = numFractures; // Memorizzo il numero di fratture nell'apposita struttura
 
-    cout << "Numero di fratture: " << numFractures << endl;
+    //cout << "Numero di fratture: " << numFractures << endl;
 
     for (int i = 0; i < numFractures; ++i) {
 
@@ -51,7 +51,7 @@ bool readDFN(const string& filename, Fracture& frattura)
         ss >> numVertices; // Legge ciò che c'è dopo il ';'
         frattura.NumVertices.push_back(numVertices);
 
-        cout << "FractureId: " << fractureId << ", NumVertici: " << numVertices << endl;
+        //cout << "FractureId: " << fractureId << ", NumVertici: " << numVertices << endl;
 
         // Leggo i vertici
         getline(file, line); // Salto la linea '# Vertices'
@@ -97,7 +97,7 @@ bool readDFN(const string& filename, Fracture& frattura)
 
         frattura.Vertices.push_back(vertici);
 
-        cout << "Vertici: " << endl << vertici << endl;
+        //cout << "Vertici: " << endl << vertici << endl;
     }
 
     file.close();
@@ -185,9 +185,10 @@ double calculateSphereRadius(const Polygon& poly) {
     return maxRadius;
 }
 
-// Funzione per verificare se due poligoni si intersecano in base alla distanza delle circonferenze circoscritte
-bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2) {
-    // Calcolo i raggi delle circonferenze circoscritte
+// Funzione per verificare se due poligoni si intersecano in base alla distanza delle sfere circoscritte
+bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2)
+{
+    // Calcolo i raggi delle sfere circoscritte
     double radius1 = calculateSphereRadius(poly1);
     double radius2 = calculateSphereRadius(poly2);
 
@@ -220,7 +221,8 @@ bool doPolygonsIntersect(const Polygon& poly1, const Polygon& poly2) {
 }
 
 // Funzione per calcolare l'equazione del piano su cui giacciono. i poligoni
-Plane calculatePlaneEquation(const Polygon& poly) {
+Plane calculatePlaneEquation(const Polygon& poly)
+{
     if (poly.vertices.size() < 3) {
         throw invalid_argument("Il Poligono deve avere almeno 3 vertici.");
     }
@@ -349,6 +351,7 @@ bool doSegmentsOverlap(const Vector3d& A, const Vector3d& B, const Vector3d& C, 
 // Funzione che calcola e stampa le intersezioni tra poligoni e trova le tracce
 void calculateAndPrintIntersections(const vector<Polygon>& polygons, const IntersectionLine& intersectionLine, size_t i, size_t j, Traces& traces)
 {
+
     // Se non intersecano, esce dalla funzione
     if (!doPolygonsIntersect(polygons[i], polygons[j])) {
         return;
@@ -366,7 +369,8 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
 
         try {
-            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(),
+                                                                                      intersectionLine.point.z()}, intersectionLine.direction);
             if (isPointOnSegment(p1, p2, intersection)) {
                 hasIntersectionI = true;
                 intersectionsI.push_back(intersection);
@@ -383,7 +387,8 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
         Vector3d direction = Vector3d(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z).normalized();
 
         try {
-            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(), intersectionLine.point.z()}, intersectionLine.direction);
+            Vector3d intersection = calculateIntersectionBetweenLines(p1, direction, {intersectionLine.point.x(), intersectionLine.point.y(),
+                                                                                      intersectionLine.point.z()}, intersectionLine.direction);
             if (isPointOnSegment(p1, p2, intersection)) {
                 hasIntersectionJ = true;
                 intersectionsJ.push_back(intersection);
@@ -413,10 +418,10 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
     */
 
     if (hasIntersectionI && hasIntersectionJ) {
-        //vector<int> fractureIDs{i, j};
         vector<int> fractureIDs{static_cast<int>(i), static_cast<int>(j)};
         if (intersectionsI == intersectionsJ) {
-            traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()}, {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
+            traces.traces[fractureIDs] = { {intersectionsI[0].x(), intersectionsI[0].y(), intersectionsI[0].z()},
+                                          {intersectionsI[1].x(), intersectionsI[1].y(), intersectionsI[1].z()} };
         } else {
             if (intersectionsI.size() >= 2 && intersectionsJ.size() >= 2) {
                 Vector3d segmentI_start = intersectionsI[0];
@@ -426,7 +431,8 @@ void calculateAndPrintIntersections(const vector<Polygon>& polygons, const Inter
 
                 Vector3d overlapStart, overlapEnd;
                 if (doSegmentsOverlap(segmentI_start, segmentI_end, segmentJ_start, segmentJ_end, overlapStart, overlapEnd)) {
-                    traces.traces[fractureIDs] = { {overlapStart.x(), overlapStart.y(), overlapStart.z()}, {overlapEnd.x(), overlapEnd.y(), overlapEnd.z()} };
+                    traces.traces[fractureIDs] = { {overlapStart.x(), overlapStart.y(), overlapStart.z()},
+                                                  {overlapEnd.x(), overlapEnd.y(), overlapEnd.z()} };
                 }
             }
         }
@@ -480,7 +486,8 @@ void saveTracesToFile(const string& filename, const Traces& traces)
 }
 
 // Funzione che verifica e classifica le tracce calcolate, determinando se sono passanti o non passanti
-void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult) {
+void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, TraceResult& traceResult)
+{
     size_t traceId = 0;
 
     for (const auto& trace : traces.traces) {
@@ -513,7 +520,7 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
             bool isNonPassante = !(p1OnPolygon && p2OnPolygon);
             int tips = isNonPassante ? 1 : 0;
 
-            traceResult.traces[fractureID].push_back({static_cast<double>(traceId), static_cast<double>(tips), distance, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z});
+            traceResult.traces[fractureID].push_back({static_cast<double>(traceId), static_cast<double>(tips), distance});
         }
 
         traceId++;
@@ -540,7 +547,8 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
 
 /*
 // Funzione per stampare le informazioni di TraceResult
-void printTraceResult(const TraceResult& traceResult) {
+void printTraceResult(const TraceResult& traceResult)
+{
     cout << "TraceResult contents:" << endl;
     for (auto it = traceResult.traces.begin(); it != traceResult.traces.end(); ++it) {
         cout << "Fracture ID: " << it->first << endl;
@@ -556,7 +564,8 @@ void printTraceResult(const TraceResult& traceResult) {
 */
 
 // Funzione per esportare i risultati in un file
-void exportTraceResult(const string& filename, const TraceResult& traceResult) {
+void exportTraceResult(const string& filename, const TraceResult& traceResult)
+{
     ofstream outputFile(filename);
 
     if (!outputFile.is_open()) {

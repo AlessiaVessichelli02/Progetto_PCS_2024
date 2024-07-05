@@ -1,14 +1,21 @@
-#include "src/Project.hpp"
 #include "src/DFN.hpp"
+#include "src/Project.hpp"
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
+#include <string>
+#include <vector>
+#include <limits>
+#include <cmath>
+#include <chrono>
+#include "Eigen/Dense"
 
 using namespace std;
 using namespace Eigen;
+using namespace std::chrono;
 
 int main() {
+
+    // Inizia a misurare il tempo
+    auto start = steady_clock::now();
 
     Fracture frattura;
 
@@ -17,13 +24,11 @@ int main() {
         return 1;
     }
 
-    // Stampa cosa c'è all'interno della struttura Fracture
-    //printFracture(frattura);
-
     vector<Polygon> polygons = createPolygons(frattura);
 
     /*
     vector<Plane> planes;
+
     for (size_t i = 0; i < polygons.size(); ++i) {
         const auto& poly = polygons[i];
         cout << "Polygon " << i << " vertices:\n";
@@ -36,32 +41,28 @@ int main() {
     }
     */
 
-    Traces traces; // Inizializzazione della struttura Traces
+    Traces traces;
 
     // Itera su tutti i possibili coppie di poligoni
     for (size_t i = 0; i < polygons.size(); ++i) {
         for (size_t j = i + 1; j < polygons.size(); ++j) {
 
-            // Se doPolygonsIntersect ritorna True, allora si può calcolare le intersezioni
-            if (doPolygonsIntersect(polygons[i], polygons[j])) {
+            // Calcola la linea di intersezione tra i piani dei poligoni i e j
+            Plane plane1 = calculatePlaneEquation(polygons[i]);
+            Plane plane2 = calculatePlaneEquation(polygons[j]);
+            IntersectionLine intersectionLine = calculateIntersectionLine(plane1, plane2);
 
-                // Calcola la linea di intersezione tra i piani dei poligoni i e j
-                Plane plane1 = calculatePlaneEquation(polygons[i]);
-                Plane plane2 = calculatePlaneEquation(polygons[j]);
-                IntersectionLine intersectionLine = calculateIntersectionLine(plane1, plane2);
+            /*
+            // Stampa le informazioni sulla linea di intersezione
+            cout << "Linea di intersezione tra il poligono " << i << " e il poligono " << j << ":" << endl;
+            cout << "Punto sulla linea di intersezione: (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ")" << endl;
+            cout << "Vettore direzione: (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
+            cout << "Equazione della linea di intersezione: "
+                 << "r(t) = (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ") + t * (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
+            */
 
-                /*
-                // Stampa le informazioni sulla linea di intersezione
-                cout << "Linea di intersezione tra il poligono " << i << " e il poligono " << j << ":" << endl;
-                cout << "Punto sulla linea di intersezione: (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ")" << endl;
-                cout << "Vettore direzione: (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
-                cout << "Equazione della linea di intersezione: "
-                     << "r(t) = (" << intersectionLine.point.x() << ", " << intersectionLine.point.y() << ", " << intersectionLine.point.z() << ") + t * (" << intersectionLine.direction.x() << ", " << intersectionLine.direction.y() << ", " << intersectionLine.direction.z() << ")" << endl;
-                */
-
-                // Calcola e stampa le intersezioni effettive
-                calculateAndPrintIntersections(polygons, intersectionLine, i, j, traces);
-            }
+            // Calcola e stampa le intersezioni effettive
+            calculateAndPrintIntersections(polygons, intersectionLine, i, j, traces);
         }
     }
 
@@ -99,6 +100,13 @@ int main() {
     //printTraceResult(traceResult);
 
     exportTraceResult("TraceOutput.txt", traceResult);
+
+    // Ferma la misurazione del tempo e calcola la durata
+    auto end = steady_clock::now();
+    auto duration = duration_cast<milliseconds>(end-start);
+
+    // Stampa il tempo trascorso
+    cout << "Tempo per processare codice: " << duration.count() << " milliseconds" << endl;
 
     return 0;
 }

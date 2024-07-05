@@ -80,7 +80,7 @@ TEST(CalculateSphereRadiusTest, RegularPolygonTest) {
     Polygon poly;
     poly.vertices = { {0.0, 0.0, 0.0}, {2.0, 0.0, 0.0}, {2.0, 2.0, 0.0}, {0.0, 2.0, 0.0} };
 
-    // Calcoliamo il raggio della circonferenza
+    // Calcoliamo il raggio della sfera
     double radius = calculateSphereRadius(poly);
 
     // Raggio atteso: in questo caso, la distanza dal baricentro (1.0, 1.0, 0.0) al vertice (2.0, 2.0, 0.0)
