@@ -493,7 +493,6 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
     for (const auto& trace : traces.traces) {
         vector<int> fractureIDs = trace.first;
         vector<vector<double>> points = trace.second;
-
         Point p1(points[0][0], points[0][1], points[0][2]);
         Point p2(points[1][0], points[1][1], points[1][2]);
         double distance = calculateDistance(p1, p2);
@@ -519,10 +518,8 @@ void checkTracePoints(const Traces& traces, const vector<Polygon>& polygons, Tra
 
             bool isNonPassante = !(p1OnPolygon && p2OnPolygon);
             int tips = isNonPassante ? 1 : 0;
-
             traceResult.traces[fractureID].push_back({static_cast<double>(traceId), static_cast<double>(tips), distance});
         }
-
         traceId++;
     }
 
